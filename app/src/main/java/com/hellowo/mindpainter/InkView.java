@@ -71,6 +71,7 @@ public class InkView extends View {
     // points
     ArrayList<InkPoint> pointQueue = new ArrayList<>();
     ArrayList<InkPoint> pointRecycle = new ArrayList<>();
+    int pointNum;
 
     // misc
     float density;
@@ -78,7 +79,7 @@ public class InkView extends View {
     Canvas canvas;
     Paint paint;
     RectF dirty;
-    ArrayList<InkListener> listeners = new ArrayList<>();
+    InkListener listener;
 
 
     public InkView(Context context) {
@@ -137,47 +138,61 @@ public class InkView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-
         clear();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         int action = e.getAction();
+        boolean isValidAction = false;
 
-        // on down, initialize stroke point
         if (action == MotionEvent.ACTION_DOWN) {
-            addPoint(getRecycledPoint(e.getX(), e.getY(), e.getEventTime()));
-
-            // notify listeners of sign
-            for (InkListener listener : listeners) {
-                listener.onInkDraw();
-            }
+            isValidAction = true;
+            onActionDown(e.getX(), e.getY(), e.getEventTime());
+        }else if (action == MotionEvent.ACTION_MOVE) {
+            isValidAction = true;
+            onActionMove(e.getX(), e.getY(), e.getEventTime());
+        }else if (action == MotionEvent.ACTION_UP) {
+            isValidAction = true;
+            onActionUp();
         }
 
-        // on move, add next point
-        else if (action == MotionEvent.ACTION_MOVE) {
-            if (!pointQueue.get(pointQueue.size() - 1).equals(e.getX(), e.getY())) {
-                addPoint(getRecycledPoint(e.getX(), e.getY(), e.getEventTime()));
-            }
-        }
-
-        // on up, draw remaining queue
-        if (action == MotionEvent.ACTION_UP) {
-            // draw final points
-            if (pointQueue.size() == 1) {
-                draw(pointQueue.get(0));
-            } else if (pointQueue.size() == 2) {
-                pointQueue.get(1).findControlPoints(pointQueue.get(0), null);
-                draw(pointQueue.get(0), pointQueue.get(1));
-            }
-
-            // recycle remaining points
-            pointRecycle.addAll(pointQueue);
-            pointQueue.clear();
+        if(isValidAction && listener != null) {
+            listener.onDraw(
+                    action,
+                    pointNum,
+                    e.getX() / getWidth(),
+                    e.getY() / getHeight(),
+                    e.getEventTime()
+            );
+            pointNum++;
         }
 
         return true;
+    }
+
+    void onActionDown(float x, float y, long time) {
+        addPoint(getRecycledPoint(x, y, time));
+    }
+
+    void onActionMove(float x, float y, long time) {
+        if (!pointQueue.get(pointQueue.size() - 1).equals(x, y)) {
+            addPoint(getRecycledPoint(x, y, time));
+        }
+    }
+
+    void onActionUp() {
+        // draw final points
+        if (pointQueue.size() == 1) {
+            draw(pointQueue.get(0));
+        } else if (pointQueue.size() == 2) {
+            pointQueue.get(1).findControlPoints(pointQueue.get(0), null);
+            draw(pointQueue.get(0), pointQueue.get(1));
+        }
+
+        // recycle remaining points
+        pointRecycle.addAll(pointQueue);
+        pointQueue.clear();
     }
 
     @Override
@@ -271,9 +286,7 @@ public class InkView extends View {
      * @param listener The listener
      */
     public void addListener(InkListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
+        this.listener = listener;
     }
 
     /**
@@ -290,21 +303,9 @@ public class InkView extends View {
     /**
      * Removes the listener from the view
      *
-     * @param listener The listener
      */
-    public void removeListener(InkListener listener) {
-        listeners.remove(listener);
-    }
-
-    /**
-     * Removes the listener from the view
-     *
-     * @param listener The listener
-     * @deprecated Use {@link #removeListener(InkListener listener)} instead
-     */
-    @Deprecated
-    public void removeInkListener(InkListener listener) {
-        removeListener(listener);
+    public void removeListener() {
+        listener = null;
     }
 
     /**
@@ -362,12 +363,20 @@ public class InkView extends View {
             bitmap.recycle();
         }
 
+        if(getWidth() > 0 && getHeight() > 0) {
+            bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        }
+
         // init bitmap cache
-        bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        canvas = new Canvas(bitmap);
+        if(bitmap != null) {
+            canvas = new Canvas(bitmap);
+        }
+
+        // 현재 포인트넘버 초기화
+        pointNum = 0;
 
         // notify listeners
-        for (InkListener listener : listeners) {
+        if(listener != null) {
             listener.onInkClear();
         }
 
@@ -428,16 +437,8 @@ public class InkView extends View {
      * Listener for the ink view to notify on actions
      */
     public interface InkListener {
-        /**
-         * Callback method when the ink view has been cleared
-         */
         void onInkClear();
-
-        /**
-         * Callback method when the ink view receives a touch event
-         * (Will be fired multiple times during a signing)
-         */
-        void onInkDraw();
+        void onDraw(int action, int pNum, float x, float y, long time);
     }
 
 
