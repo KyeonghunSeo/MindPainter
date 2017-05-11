@@ -33,6 +33,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -130,46 +131,35 @@ public class MainActivity extends Activity
             findViewById(id).setOnClickListener(this);
         }
 
-        initCanvasLayout();
         initInkView();
         initPlayerLayout();
         initInputView();
+        initProgressView();
     }
 
-    FrameLayout canvasLy;
     InkView inkView;
-    QuestionView questionView;
     int inkViewWidth;
     int inkViewHeight;
 
-    private void initCanvasLayout() {
+    private void initInkView() {
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
 
-        canvasLy = (FrameLayout) findViewById(R.id.canvasLy);
         inkView = (InkView) findViewById(R.id.ink);
-        questionView = (QuestionView) findViewById(R.id.questionView);
-
-        int canvas_ly_width = dm.widthPixels - ViewUtil.dpToPx(this, 50);
-        int canvas_ly_height = dm.heightPixels -  ViewUtil.dpToPx(this, 50);
+        inkViewWidth = dm.widthPixels - ViewUtil.dpToPx(this, 20);
+        inkViewHeight = (int) (inkViewWidth * 1.5f);
 
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                canvas_ly_width,
-                canvas_ly_height
-        );
-
-        lp.gravity = Gravity.RIGHT;
-        canvasLy.setLayoutParams(lp);
-
-        inkViewWidth = canvas_ly_width - ViewUtil.dpToPx(this, 20);
-        inkViewHeight = (int) (inkViewWidth * 1.4f);
-
-        lp = new FrameLayout.LayoutParams(
                 inkViewWidth,
                 inkViewHeight
         );
-        lp.gravity = Gravity.CENTER;
+        lp.setMargins(0, ViewUtil.dpToPx(this, 20), 0, 0);
+        lp.gravity = Gravity.CENTER_HORIZONTAL;
         inkView.setLayoutParams(lp);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            inkView.setElevation(ViewUtil.dpToPx(this, 1));
+        }
 
         inkView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -183,27 +173,11 @@ public class MainActivity extends Activity
                     }
                 });
 
-        lp = new FrameLayout.LayoutParams(
-                inkViewWidth,
-                ViewUtil.dpToPx(this, 50)
-        );
-
-        questionView.setLayoutParams(lp);
-        questionView.setMaxWidth(inkViewWidth);
-        questionView.makeStudentChips("셍루방루화이팅");
-    }
-
-    private void initInkView() {
         inkView.setBackgroundColor(Color.WHITE);
         inkView.setTool(TOOL_SIGN_PEN);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            inkView.setElevation(ViewUtil.dpToPx(this, 3));
-        }
         inkView.addListener(new InkView.InkListener() {
             @Override
-            public void onInkClear() {
-
-            }
+            public void onInkClear() {}
 
             @Override
             public void onDraw(int action, int pNum, float x, float y, long time) {
@@ -266,6 +240,12 @@ public class MainActivity extends Activity
                 return true;
             }
         });
+    }
+
+    ProgressBar tickProgress;
+
+    private void initProgressView() {
+        tickProgress = (ProgressBar) findViewById(R.id.tickProgress);
     }
 
     @Override
@@ -752,6 +732,7 @@ public class MainActivity extends Activity
     // Reset game variables in preparation for a new game.
     void resetGameVars() {
         inkView.clear();
+        tickProgress.setProgress(0);
         leftTime = gameDuration;
         pNum = 0;
         savedPNumMap.clear();
@@ -799,11 +780,15 @@ public class MainActivity extends Activity
         }
 
         // update countdown
-        //sProgress.setProgress(( 1 - ((float) leftTime / gameDuration)) * 100);
+        tickProgress.setProgress((int) (((float) leftTime / gameDuration) * 100));
 
         if (leftTime <= 0) {
-            // finish game
+            finishGame();
         }
+    }
+
+    private void finishGame() {
+
     }
 
     private void drawPoint(GameMessage msg) {
