@@ -1,4 +1,4 @@
-package com.hellowo.mindpainter;
+package com.hellowo.mindpainter.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -6,11 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-/**
- * Created by Day2Life Android Dev on 2017-05-10.
- */
-
-public class ByteUtils {
+public class ByteUtil {
     public static byte[] toByteArray (Object obj) {
         byte[] bytes = null;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

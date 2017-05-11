@@ -30,40 +30,25 @@ public class InkView extends View {
 
     /**
      * The default smoothing ratio for calculating the control points for the bezier curves.
-     * Will be ignored if FLAG_INTERPOLATION is removed
      */
     public static final float DEFAULT_SMOOTHING_RATIO = 0.75f;
 
-    /**
-     * When this flag is added, paths will be drawn as cubic-bezier curves
-     */
-    public static final int FLAG_INTERPOLATION = 1;
-
-    /**
-     * When present, the width of the paths will be responsive to the velocity of the stroke.
-     * When missing, the width of the path will be the the max stroke width
-     */
-    public static final int FLAG_RESPONSIVE_WIDTH = 1 << 1;
-
-    /**
-     * When present, the data points for the path are drawn with their respective control points
-     *
-     * @deprecated This flag is no longer supported
-     */
-    @Deprecated
-    public static final int FLAG_DEBUG = Integer.MIN_VALUE;
-
+    public static final byte TOOL_ERASER = -1;
+    public static final byte TOOL_PENCIL = 0;
+    public static final byte TOOL_SIGN_PEN = 1;
+    public static final byte TOOL_FOUNTAIN_PEN = 2;
 
     // constants
     static final float THRESHOLD_VELOCITY = 7f;         // in/s
     static final float THRESHOLD_ACCELERATION = 3f;    // in/s^2
     static final float FILTER_RATIO_MIN = 0.22f;
     static final float FILTER_RATIO_ACCELERATION_MODIFIER = 0.1f;
-    static final int DEFAULT_FLAGS = FLAG_INTERPOLATION | FLAG_RESPONSIVE_WIDTH;
     static final int DEFAULT_STROKE_COLOR = 0xFF000000;
 
     // settings
-    int flags;
+    int tool = TOOL_PENCIL;
+    int color = DEFAULT_STROKE_COLOR;
+    boolean isInterolation = true;
     float maxStrokeWidth;
     float minStrokeWidth;
     float smoothingRatio;
@@ -83,13 +68,7 @@ public class InkView extends View {
 
 
     public InkView(Context context) {
-        this(context, DEFAULT_FLAGS);
-    }
-
-    public InkView(Context context, int flags) {
         super(context);
-
-        init(flags);
     }
 
     public InkView(Context context, AttributeSet attrs) {
@@ -98,19 +77,9 @@ public class InkView extends View {
 
     public InkView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
-        // get flags from attributes
-        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.InkView, defStyleAttr, 0);
-        int flags = a.getInt(R.styleable.InkView_inkFlags, DEFAULT_FLAGS);
-        a.recycle();
-
-        init(flags);
     }
 
-    private void init(int flags) {
-        // init flags
-        setFlags(flags);
-
+    public void init() {
         // init screen density
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         density = (metrics.xdpi + metrics.ydpi) / 2f;
@@ -198,7 +167,9 @@ public class InkView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         // simply paint the bitmap on the canvas
-        canvas.drawBitmap(bitmap, 0, 0, null);
+        if(bitmap != null) {
+            canvas.drawBitmap(bitmap, 0, 0, null);
+        }
 
         super.onDraw(canvas);
     }
@@ -208,76 +179,31 @@ public class InkView extends View {
     // Public Methods
     //--------------------------------------
 
-    /**
-     * Sets the feature flags for the view. This will overwrite any previously set flag
-     *
-     * @param flags A bit mask of one or more flags (ie. FLAG_INTERPOLATION | FLAG_RESPONSIVE_WIDTH)
-     */
-    public void setFlags(int flags) {
-        this.flags = flags;
+    public int getTool() {
+        return tool;
     }
 
-    /**
-     * Adds the feature flag(s) to the view.
-     *
-     * @param flags A bit mask of one or more flags (ie. FLAG_INTERPOLATION | FLAG_RESPONSIVE_WIDTH)
-     */
-    public void addFlags(int flags) {
-        this.flags |= flags;
+    public void setTool(int tool) {
+        this.tool = tool;
+
+        switch (tool) {
+            case TOOL_PENCIL:
+                break;
+            case TOOL_SIGN_PEN:
+                break;
+            case TOOL_FOUNTAIN_PEN:
+                break;
+            default:
+                break;
+        }
     }
 
-    /**
-     * Alias for {@link #addFlags(int) addFlags}
-     *
-     * @param flag A feature flag (ie. FLAG_INTERPOLATION)
-     */
-    public void addFlag(int flag) {
-        addFlags(flag);
+    public boolean isInterolation() {
+        return isInterolation;
     }
 
-    /**
-     * Removes the feature flag(s) from the view.
-     *
-     * @param flags A bit mask of one or more flags (ie. FLAG_INTERPOLATION | FLAG_RESPONSIVE_WIDTH)
-     */
-    public void removeFlags(int flags) {
-        this.flags &= ~flags;
-    }
-
-    /**
-     * Alias for {@link #removeFlags(int) removeFlags}
-     *
-     * @param flag A feature flag (ie. FLAG_INTERPOLATION)
-     */
-    public void removeFlag(int flag) {
-        removeFlags(flag);
-    }
-
-    /**
-     * Checks to see if the view has the supplied flag(s)
-     *
-     * @param flags A bit mask of one or more flags (ie. FLAG_INTERPOLATION | FLAG_RESPONSIVE_WIDTH)
-     * @return True or False
-     */
-    public boolean hasFlags(int flags) {
-        return (this.flags & flags) > 0;
-    }
-
-    /**
-     * Alias for {@link #hasFlags(int flags) hasFlags}
-     *
-     * @param flag A feature flag (ie. FLAG_INTERPOLATION)
-     * @return True or False
-     */
-    public boolean hasFlag(int flag) {
-        return hasFlags(flag);
-    }
-
-    /**
-     * Clears all feature flags from the view
-     */
-    public void clearFlags() {
-        flags = 0;
+    public void setInterolation(boolean interolation) {
+        isInterolation = interolation;
     }
 
     /**
@@ -314,6 +240,7 @@ public class InkView extends View {
      * @param color The color value
      */
     public void setColor(int color) {
+        this.color = color;
         paint.setColor(color);
     }
 
@@ -502,12 +429,16 @@ public class InkView extends View {
     }
 
     float computeStrokeWidth(float velocity) {
-        // compute responsive width
-        if (hasFlags(FLAG_RESPONSIVE_WIDTH)) {
-            return maxStrokeWidth - (maxStrokeWidth - minStrokeWidth) * Math.min(velocity / THRESHOLD_VELOCITY, 1f);
+        switch (tool) {
+            case TOOL_PENCIL:
+                return maxStrokeWidth;
+            case TOOL_SIGN_PEN:
+                return minStrokeWidth + (maxStrokeWidth - minStrokeWidth) * Math.min(velocity / THRESHOLD_VELOCITY, 1f);
+            case TOOL_FOUNTAIN_PEN:
+                return maxStrokeWidth - (maxStrokeWidth - minStrokeWidth) * Math.min(velocity / THRESHOLD_VELOCITY, 1f);
+            default:
+                return maxStrokeWidth;
         }
-
-        return maxStrokeWidth;
     }
 
     void draw(InkPoint p) {
@@ -541,7 +472,7 @@ public class InkView extends View {
         float deltaWidth = endWidth - startWidth;
 
         // interpolate bezier curve
-        if (hasFlags(FLAG_INTERPOLATION)) {
+        if (isInterolation) {
 
             // compute # of steps to interpolate in the bezier curve
             int steps = (int) (Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)) / 5);

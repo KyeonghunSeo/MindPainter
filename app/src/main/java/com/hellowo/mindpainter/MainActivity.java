@@ -18,15 +18,20 @@ package com.hellowo.mindpainter;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -46,10 +51,17 @@ import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.google.android.gms.games.multiplayer.realtime.RoomStatusUpdateListener;
 import com.google.android.gms.games.multiplayer.realtime.RoomUpdateListener;
 import com.google.example.games.basegameutils.BaseGameUtils;
+import com.hellowo.mindpainter.utils.AnimationUtil;
+import com.hellowo.mindpainter.utils.ByteUtil;
+import com.hellowo.mindpainter.utils.ViewUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.hellowo.mindpainter.InkView.TOOL_SIGN_PEN;
 
 public class MainActivity extends Activity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -101,10 +113,6 @@ public class MainActivity extends Activity
     // invitation listener
     String mIncomingInvitationId = null;
 
-    InkView inkView;
-    int inkViewWidth;
-    int inkViewHeight;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,22 +130,75 @@ public class MainActivity extends Activity
             findViewById(id).setOnClickListener(this);
         }
 
+        initCanvasLayout();
         initInkView();
+        initPlayerLayout();
+        initInputView();
     }
 
-    private void initInkView() {
+    FrameLayout canvasLy;
+    InkView inkView;
+    QuestionView questionView;
+    int inkViewWidth;
+    int inkViewHeight;
+
+    private void initCanvasLayout() {
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
 
-        inkViewWidth = (int) (dm.heightPixels * 1.5f);
-        inkViewHeight = dm.heightPixels;
-
+        canvasLy = (FrameLayout) findViewById(R.id.canvasLy);
         inkView = (InkView) findViewById(R.id.ink);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(inkViewWidth, inkViewHeight);
+        questionView = (QuestionView) findViewById(R.id.questionView);
+
+        int canvas_ly_width = dm.widthPixels - ViewUtil.dpToPx(this, 50);
+        int canvas_ly_height = dm.heightPixels -  ViewUtil.dpToPx(this, 50);
+
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                canvas_ly_width,
+                canvas_ly_height
+        );
+
+        lp.gravity = Gravity.RIGHT;
+        canvasLy.setLayoutParams(lp);
+
+        inkViewWidth = canvas_ly_width - ViewUtil.dpToPx(this, 20);
+        inkViewHeight = (int) (inkViewWidth * 1.4f);
+
+        lp = new FrameLayout.LayoutParams(
+                inkViewWidth,
+                inkViewHeight
+        );
         lp.gravity = Gravity.CENTER;
         inkView.setLayoutParams(lp);
-        inkView.setBackgroundColor(Color.GREEN);
 
+        inkView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    public void onGlobalLayout() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                            inkView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        } else {
+                            inkView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        }
+                        inkView.init();
+                    }
+                });
+
+        lp = new FrameLayout.LayoutParams(
+                inkViewWidth,
+                ViewUtil.dpToPx(this, 50)
+        );
+
+        questionView.setLayoutParams(lp);
+        questionView.setMaxWidth(inkViewWidth);
+        questionView.makeStudentChips("셍루방루화이팅");
+    }
+
+    private void initInkView() {
+        inkView.setBackgroundColor(Color.WHITE);
+        inkView.setTool(TOOL_SIGN_PEN);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            inkView.setElevation(ViewUtil.dpToPx(this, 3));
+        }
         inkView.addListener(new InkView.InkListener() {
             @Override
             public void onInkClear() {
@@ -156,7 +217,53 @@ public class MainActivity extends Activity
                     msg = makeMessage((byte) 2, null, pNum, x, y, time);
                 }
 
-                broadcastScore(true, ByteUtils.toByteArray(msg));
+                broadcastScore(true, ByteUtil.toByteArray(msg));
+            }
+        });
+    }
+
+    FrameLayout[] pLayouts = new FrameLayout[4];
+    TextView[] pNameViews = new TextView[4];
+    TextView[] pChatViews= new TextView[4];
+    CircleImageView[] pImgViews = new CircleImageView[4];
+
+    private void initPlayerLayout() {
+        pLayouts[0] = (FrameLayout) findViewById(R.id.p1Ly);
+        pNameViews[0] = (TextView) findViewById(R.id.p1Name);
+        pChatViews[0] = (TextView) findViewById(R.id.p1Chat);
+        pImgViews[0] = (CircleImageView) findViewById(R.id.p1Img);
+
+        pLayouts[1] = (FrameLayout) findViewById(R.id.p2Ly);
+        pNameViews[1] = (TextView) findViewById(R.id.p2Name);
+        pChatViews[1] = (TextView) findViewById(R.id.p2Chat);
+        pImgViews[1] = (CircleImageView) findViewById(R.id.p2Img);
+
+        pLayouts[2] = (FrameLayout) findViewById(R.id.p3Ly);
+        pNameViews[2] = (TextView) findViewById(R.id.p3Name);
+        pChatViews[2] = (TextView) findViewById(R.id.p3Chat);
+        pImgViews[2] = (CircleImageView) findViewById(R.id.p3Img);
+
+        pLayouts[3] = (FrameLayout) findViewById(R.id.p4Ly);
+        pNameViews[3] = (TextView) findViewById(R.id.p4Name);
+        pChatViews[3] = (TextView) findViewById(R.id.p4Chat);
+        pImgViews[3] = (CircleImageView) findViewById(R.id.p4Img);
+    }
+
+    EditText input;
+
+    private void initInputView() {
+        input = (EditText) findViewById(R.id.input);
+        input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                switch (actionId) {
+                    case EditorInfo.IME_ACTION_DONE:
+                        sendInputMessage();
+                        break;
+                    default:
+                        return false;
+                }
+                return true;
             }
         });
     }
@@ -380,7 +487,7 @@ public class MainActivity extends Activity
     // Leave the room.
     void leaveRoom() {
         Log.d(TAG, "Leaving room.");
-        mSecondsLeft = 0;
+        leftTime = 0;
         stopKeepingScreenOn();
         if (mRoomId != null) {
             Games.RealTimeMultiplayer.leave(mGoogleApiClient, this, mRoomId);
@@ -493,8 +600,9 @@ public class MainActivity extends Activity
         mMyId = room.getParticipantId(Games.Players.getCurrentPlayerId(mGoogleApiClient));
 
         // save room ID if its not initialized in onRoomCreated() so we can leave cleanly before the game starts.
-        if(mRoomId==null)
+        if(mRoomId==null) {
             mRoomId = room.getRoomId();
+        }
 
         // print out the list of participants (for debug purposes)
         Log.d(TAG, "Room ID: " + mRoomId);
@@ -619,9 +727,7 @@ public class MainActivity extends Activity
         if (room != null) {
             mParticipants = room.getParticipants();
         }
-        if (mParticipants != null) {
-
-        }
+        setPlayerViews();
     }
 
     /*
@@ -629,15 +735,24 @@ public class MainActivity extends Activity
      */
 
     // Current state of the game:
-    int mSecondsLeft = -1; // how long until the game ends (seconds)
-    final static int GAME_DURATION = 60; // game duration, seconds.
+    final static int MAX_PLAYER_COUNT = 4;
+    final static int GAME_STATUS_READYING = 0;
+    final static int GAME_STATUS_DRAWING = 1;
+    final static int GAME_STATUS_FINISHING = 2;
+    final static int GAME_TICK_FRAME = 35;
+    final static int PLAYER_PANELTY_TIME = 1000 * 10;
+    long gameDuration = 1000 * 60; // 그리기 시간
+    long leftTime = -1; // 남은 시간
+    long[] playerPenaltyTime = new long[MAX_PLAYER_COUNT];
     int pNum = 0; // 현재 그려지는 포인트 넘버
+    int gameStatus = GAME_STATUS_READYING;
+    String currentTurnPlayerId;
     HashMap<Integer, GameMessage> savedPNumMap = new HashMap<>();
 
     // Reset game variables in preparation for a new game.
     void resetGameVars() {
         inkView.clear();
-        mSecondsLeft = GAME_DURATION;
+        leftTime = gameDuration;
         pNum = 0;
         savedPNumMap.clear();
     }
@@ -645,57 +760,49 @@ public class MainActivity extends Activity
     // Start the gameplay phase of the game.
     void startGame(boolean multiplayer) {
         mMultiplayer = multiplayer;
-        switchToScreen(R.id.screen_game);
+        gameStatus = GAME_STATUS_READYING;
 
-        // run the gameTick() method every second to update the game.
+        switchToScreen(R.id.screen_game);
+        clearPlayerPenaltyTime();
+
+        if(multiplayer) {
+
+            currentTurnPlayerId = mParticipants.get(0).getParticipantId();
+            setPlayerViews();
+            setBottomViews();
+            sendMyInformation();
+
+        }
+
         final Handler h = new Handler();
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mSecondsLeft <= 0)
+                if (leftTime <= 0)
                     return;
                 gameTick();
-                h.postDelayed(this, 1000);
+                h.postDelayed(this, GAME_TICK_FRAME);
             }
-        }, 1000);
+        }, GAME_TICK_FRAME);
+    }
+
+    private void clearPlayerPenaltyTime() {
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            playerPenaltyTime[i] = 0;
+        }
     }
 
     // Game tick -- update countdown, check if game ended.
     void gameTick() {
-        if (mSecondsLeft > 0)
-            --mSecondsLeft;
+        if (leftTime > 0) {
+            leftTime -= GAME_TICK_FRAME;
+        }
 
         // update countdown
+        //sProgress.setProgress(( 1 - ((float) leftTime / gameDuration)) * 100);
 
-        if (mSecondsLeft <= 0) {
+        if (leftTime <= 0) {
             // finish game
-        }
-    }
-
-    /*
-     * 통신 섹션 : 게임 네트워크 프로토콜 구현 메소드
-     */
-
-    @Override
-    public void onRealTimeMessageReceived(RealTimeMessage rtm) {
-        byte[] buf = rtm.getMessageData();
-        GameMessage msg = (GameMessage) ByteUtils.toObject(buf);
-
-        String sender = rtm.getSenderParticipantId();
-        Log.d(TAG, "Message received: " + msg.time);
-
-        if(msg.type >= 0 && msg.type <= 2) {
-
-            if(msg.pNum == pNum) {
-                drawPoint(msg);
-            }else {
-                savePoint(msg);
-            }
-
-            while(savedPNumMap.containsKey(pNum)) {
-                drawPoint(savedPNumMap.remove(pNum));
-            }
-
         }
     }
 
@@ -727,6 +834,50 @@ public class MainActivity extends Activity
 
     private void savePoint(GameMessage msg) {
         savedPNumMap.put(msg.pNum, msg);
+    }
+
+    /*
+     * 통신 섹션 : 게임 네트워크 프로토콜 구현 메소드
+     */
+
+    @Override
+    public void onRealTimeMessageReceived(RealTimeMessage rtm) {
+        byte[] buf = rtm.getMessageData();
+        GameMessage msg = (GameMessage) ByteUtil.toObject(buf);
+        Log.d(TAG, "Message received: " + msg.time);
+
+        if(msg.type >= 0 && msg.type <= 2) {
+
+            if(msg.pNum == pNum) {
+                drawPoint(msg);
+            }else {
+                savePoint(msg);
+            }
+
+            while(savedPNumMap.containsKey(pNum)) {
+                drawPoint(savedPNumMap.remove(pNum));
+            }
+
+        }else if(msg.type >= 100 && msg.type <= 100) {
+
+            String senderId = rtm.getSenderParticipantId();
+            showChatMessage(senderId, msg);
+
+        }
+    }
+
+    private void sendMyInformation() {
+
+    }
+
+    private void sendInputMessage() {
+        String text = input.getText().toString();
+        if(!TextUtils.isEmpty(text)) {
+            GameMessage msg = makeMessage((byte) 100, text, 0, 0, 0, System.currentTimeMillis());
+            broadcastScore(false, ByteUtil.toByteArray(msg));
+            showChatMessage(mMyId, msg);
+            input.setText("");
+        }
     }
 
     // Broadcast my score to everybody else.
@@ -779,6 +930,56 @@ public class MainActivity extends Activity
             R.id.screen_wait
     };
     int mCurScreen = -1;
+
+    private void setPlayerViews() {
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            if(mParticipants == null || i >= mParticipants.size()){
+                pLayouts[i].setVisibility(View.GONE);
+            }else{
+                pLayouts[i].setVisibility(View.VISIBLE);
+            }
+        }
+
+        if(mParticipants != null) {
+
+            for (int i = 0; i < mParticipants.size(); i++) {
+                Participant p = mParticipants.get(i);
+                pNameViews[i].setText(p.getDisplayName());
+            }
+
+        }
+    }
+
+    private void setBottomViews() {
+        if(currentTurnPlayerId == mMyId) {
+            showDrawToolView();
+        }else {
+            showInputView();
+        }
+    }
+
+    private void showDrawToolView() {
+
+    }
+
+    private void showInputView() {
+
+    }
+
+    private void showChatMessage(String senderId, GameMessage msg) {
+        if(mParticipants != null) {
+            for (int i = 0; i < mParticipants.size(); i++) {
+                if(mParticipants.get(i).getParticipantId().equals(senderId)) {
+                    pChatViews[i].setText(msg.text);
+                    AnimationUtil.startFromLeftSlideAppearAnimation(
+                            pChatViews[i],
+                            ViewUtil.dpToPx(this, 30)
+                    );
+                    return;
+                }
+            }
+        }
+    }
 
     void switchToScreen(int screenId) {
         // make the requested screen visible; hide all others.
