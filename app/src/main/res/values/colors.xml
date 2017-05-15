@@ -1,8 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimary">#40A9F5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="colorAccent">#F52F3C</color>
     <color name="none">#00000000</color>
+
+    <color name="alphaPrimary">#D940A9F5</color>
+    <color name="white">#FFFFFF</color>
+    <color name="alphaWhite">#D9FFFFFF</color>
+    <color name="redIndentity">#F52F3C</color>
+    <color name="alphaRedIndentity">#D9F52F3C</color>
+    <color name="greenIndentity">#71D44A</color>
+    <color name="greyIndentity">#B3B3B3</color>
+    <color name="facebookBlue">#3b5998</color>
+
+    <!-- 일반 -->
+    <color name="transitionDim">#A6000000</color>
+    <color name="greyHighlight">#949494</color>
+    <color name="greyBackground">#EFEFF4</color>
+    <color name="mainLine">#CCCCCC</color>
+
+    <!-- 버튼 -->
+    <color name="pressed">#80595C60</color>
+
+    <!-- 텍스트 -->
+    <color name="mainText">#000000</color>
+    <color name="alphaMainText">#B3000000</color>
+
+    <!-- 캘린더 -->
+    <color name="selectedDate">#33595C60</color>
+    <color name="dateText">#141414</color>
+    <color name="alphaDateText">#40141414</color>
+    <color name="weekend">#EF3206</color>
+    <color name="alphaWeekend">#40EF3206</color>
+    <color name="doneText">#33000000</color>
+    <color name="dailyTodoIndi">#545454</color>
+    <color name="yellowIdentity">#ffd235</color>
+
+    <color name="primary_text">#de000000</color>
+    <color name="secondary_text">#89000000</color>
+    <color name="disable_text">#60000000</color>
+    <color name="primary_white_text">#FFFFFFFF</color>
+    <color name="secondary_white_text">#b3FFFFFF</color>
+    <color name="disable_white_text">#80FFFFFF</color>
 </resources>

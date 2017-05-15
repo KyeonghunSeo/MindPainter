@@ -36,4 +36,7 @@
     <string name="click_me">Click me!</string>
     <string name="is_inviting_you">is challenging you to a game!</string>
     <string name="signin_other_error">There was an issue with sign in. Please try again later.</string>
+    <string name="input_hint">메세지를 입력해주세요</string>
+    <string name="input_answer_hint">정답을 맞춰주세요!</string>
+    <string name="send">전송</string>
 </resources>

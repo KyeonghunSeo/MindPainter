@@ -68,9 +68,21 @@ public class AnimationUtil {
         final AnimatorSet animSet = new AnimatorSet();
         animSet.playTogether(
                 ObjectAnimator.ofFloat(view, "translationX",
-                        -offset, 0).setDuration(ANIMATION_DURATION),
-                ObjectAnimator.ofFloat(view, "alpha",
-                        0f, 1f).setDuration(ANIMATION_DURATION)
+                        -offset, 0).setDuration(ANIMATION_DURATION)
+        );
+        animSet.setInterpolator(new FastOutSlowInInterpolator());
+        animSet.start();
+    }
+
+    /**
+     * 왼쪽으로 사라지는 애니메이션
+     * @param view 애니메이션 뷰
+     */
+    public static void startToLeftSlideDisAppearAnimation(View view, float offset){
+        final AnimatorSet animSet = new AnimatorSet();
+        animSet.playTogether(
+                ObjectAnimator.ofFloat(view, "translationX",
+                        0, -offset).setDuration(ANIMATION_DURATION)
         );
         animSet.setInterpolator(new FastOutSlowInInterpolator());
         animSet.start();

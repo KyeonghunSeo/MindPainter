@@ -15,27 +15,41 @@
 
 package com.hellowo.mindpainter;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ProgressBar;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
@@ -106,6 +120,7 @@ public class MainActivity extends Activity
 
     // The participants in the currently active game
     ArrayList<Participant> mParticipants = null;
+    HashMap<String, Player> playerMap = new HashMap<>();
 
     // My participant ID in the currently active game
     String mMyId = null;
@@ -133,7 +148,10 @@ public class MainActivity extends Activity
 
         initInkView();
         initPlayerLayout();
+        initChatListView();
         initInputView();
+        initQuestionView();
+        initFab();
         initProgressView();
     }
 
@@ -146,15 +164,15 @@ public class MainActivity extends Activity
         getWindowManager().getDefaultDisplay().getMetrics(dm);
 
         inkView = (InkView) findViewById(R.id.ink);
-        inkViewWidth = dm.widthPixels - ViewUtil.dpToPx(this, 20);
+        inkViewWidth = dm.widthPixels;
         inkViewHeight = (int) (inkViewWidth * 1.5f);
 
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                 inkViewWidth,
                 inkViewHeight
         );
-        lp.setMargins(0, ViewUtil.dpToPx(this, 20), 0, 0);
-        lp.gravity = Gravity.CENTER_HORIZONTAL;
+        lp.setMargins(0, 0, 0, ViewUtil.dpToPx(this, 50));
+        lp.gravity = Gravity.BOTTOM;
         inkView.setLayoutParams(lp);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -198,35 +216,125 @@ public class MainActivity extends Activity
 
     FrameLayout[] pLayouts = new FrameLayout[4];
     TextView[] pNameViews = new TextView[4];
-    TextView[] pChatViews= new TextView[4];
     CircleImageView[] pImgViews = new CircleImageView[4];
 
     private void initPlayerLayout() {
         pLayouts[0] = (FrameLayout) findViewById(R.id.p1Ly);
         pNameViews[0] = (TextView) findViewById(R.id.p1Name);
-        pChatViews[0] = (TextView) findViewById(R.id.p1Chat);
         pImgViews[0] = (CircleImageView) findViewById(R.id.p1Img);
 
         pLayouts[1] = (FrameLayout) findViewById(R.id.p2Ly);
         pNameViews[1] = (TextView) findViewById(R.id.p2Name);
-        pChatViews[1] = (TextView) findViewById(R.id.p2Chat);
         pImgViews[1] = (CircleImageView) findViewById(R.id.p2Img);
 
         pLayouts[2] = (FrameLayout) findViewById(R.id.p3Ly);
         pNameViews[2] = (TextView) findViewById(R.id.p3Name);
-        pChatViews[2] = (TextView) findViewById(R.id.p3Chat);
         pImgViews[2] = (CircleImageView) findViewById(R.id.p3Img);
 
         pLayouts[3] = (FrameLayout) findViewById(R.id.p4Ly);
         pNameViews[3] = (TextView) findViewById(R.id.p4Name);
-        pChatViews[3] = (TextView) findViewById(R.id.p4Chat);
         pImgViews[3] = (CircleImageView) findViewById(R.id.p4Img);
     }
 
+    RecyclerView chatListView;
+    ChatListAdapter chatAdapter;
+
+    private void initChatListView() {
+        chatListView = (RecyclerView) findViewById(R.id.chatListView);
+        chatListView.setLayoutManager(new LinearLayoutManager(this));
+        chatAdapter = new ChatListAdapter(this);
+        chatListView.setAdapter(chatAdapter);
+    }
+
+    public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHolder> {
+
+        private List<Chat> chatList;
+        long aniamtionOffset;
+
+        public ChatListAdapter(Context context){
+            chatList = new ArrayList<>();
+            aniamtionOffset = ViewUtil.dpToPx(context, 20);
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            CircleImageView imageView;
+            TextView nameText;
+            TextView chatText;
+            View root;
+
+            public ViewHolder(View v) {
+                super(v);
+                root = v;
+                imageView = (CircleImageView)v.findViewById(R.id.imageView);
+                nameText = (TextView)v.findViewById(R.id.nameText);
+                chatText = (TextView)v.findViewById(R.id.chatText);
+            }
+        }
+
+        @Override
+        public ChatListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_chat_list, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(ChatListAdapter.ViewHolder holder, final int position) {
+            Chat chat = getItem(position);
+            holder.nameText.setText(chat.player.name + " : ");
+            holder.chatText.setText(chat.message);
+
+            if(chat.type == 100) {
+                holder.chatText.setTextColor(Color.BLACK);
+            }else {
+                holder.chatText.setTextColor(Color.RED);
+            }
+
+            //AnimationUtil.startFromBottomSlideAppearAnimation(holder.root, aniamtionOffset);
+        }
+
+        public Chat getItem(int position) {
+            return chatList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return getItem(position).hashCode();
+        }
+
+        @Override
+        public int getItemCount() {
+            return chatList.size();
+        }
+
+        public void addChat(Chat chat) {
+            chatList.add(chat);
+            notifyItemInserted(chatList.size() - 1);
+            chatListView.scrollToPosition(chatList.size() - 1);
+        }
+    }
+
+    public class Chat {
+        String message;
+        Player player;
+        int type;
+    }
+
+    FrameLayout inputLy;
+    ImageButton answerBtn;
+    View answerView;
     EditText input;
+    Button sendBtn;
 
     private void initInputView() {
+        inputLy = (FrameLayout) findViewById(R.id.inputLy);
         input = (EditText) findViewById(R.id.input);
+        answerBtn = (ImageButton) findViewById(R.id.answerBtn);
+        answerView = findViewById(R.id.answerView);
+        sendBtn = (Button) findViewById(R.id.sendBtn);
+
+        answerView.setTranslationX(-(inkViewWidth - ViewUtil.dpToPx(this, 50)));
+
         input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -240,12 +348,39 @@ public class MainActivity extends Activity
                 return true;
             }
         });
+
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendInputMessage();
+            }
+        });
+
+        answerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                changeChatMode();
+            }
+        });
     }
 
-    ProgressBar tickProgress;
+    TextView questionLengthText;
+
+    private void initQuestionView() {
+        questionLengthText = (TextView) findViewById(R.id.questionLengthText);
+        questionLengthText.setText("0");
+    }
+
+    private void initFab() {
+    }
+
+    RoundCornerProgressBar tickProgress;
+    TextView tickProgressText;
 
     private void initProgressView() {
-        tickProgress = (ProgressBar) findViewById(R.id.tickProgress);
+        tickProgress = (RoundCornerProgressBar) findViewById(R.id.tickProgress);
+        tickProgress.setBackgroundColor(Color.LTGRAY);
+        tickProgressText = (TextView) findViewById(R.id.tickProgressText);
     }
 
     @Override
@@ -583,11 +718,6 @@ public class MainActivity extends Activity
         if(mRoomId==null) {
             mRoomId = room.getRoomId();
         }
-
-        // print out the list of participants (for debug purposes)
-        Log.d(TAG, "Room ID: " + mRoomId);
-        Log.d(TAG, "My ID " + mMyId);
-        Log.d(TAG, "<< CONNECTED TO ROOM>>");
     }
 
     // Called when we've successfully left the room (this happens a result of voluntarily leaving
@@ -706,8 +836,18 @@ public class MainActivity extends Activity
     void updateRoom(Room room) {
         if (room != null) {
             mParticipants = room.getParticipants();
+
+            playerMap.clear();
+
+            for (Participant p : mParticipants) {
+                Player player = new Player();
+                player.id = p.getParticipantId();
+                player.name = p.getDisplayName();
+                playerMap.put(p.getParticipantId(), player);
+            }
+
+            setPlayerViews();
         }
-        setPlayerViews();
     }
 
     /*
@@ -721,21 +861,25 @@ public class MainActivity extends Activity
     final static int GAME_STATUS_FINISHING = 2;
     final static int GAME_TICK_FRAME = 35;
     final static int PLAYER_PANELTY_TIME = 1000 * 10;
+    final static int CHAT_NORMAL = 0;
+    final static int CHAT_ANSWER = 1;
+
     long gameDuration = 1000 * 60; // 그리기 시간
     long leftTime = -1; // 남은 시간
     long[] playerPenaltyTime = new long[MAX_PLAYER_COUNT];
     int pNum = 0; // 현재 그려지는 포인트 넘버
     int gameStatus = GAME_STATUS_READYING;
+    int chatMode = CHAT_NORMAL;
     String currentTurnPlayerId;
+    String question = "question";
     HashMap<Integer, GameMessage> savedPNumMap = new HashMap<>();
 
     // Reset game variables in preparation for a new game.
     void resetGameVars() {
-        inkView.clear();
-        tickProgress.setProgress(0);
         leftTime = gameDuration;
         pNum = 0;
         savedPNumMap.clear();
+        chatMode = CHAT_NORMAL;
     }
 
     // Start the gameplay phase of the game.
@@ -755,6 +899,16 @@ public class MainActivity extends Activity
 
         }
 
+        inkView.clear();
+        tickProgress.setProgress(100);
+        tickProgressText.setText("");
+
+        if(chatMode == CHAT_ANSWER) {
+            changeChatMode();
+        }
+
+        setQuestion();
+
         final Handler h = new Handler();
         h.postDelayed(new Runnable() {
             @Override
@@ -767,20 +921,45 @@ public class MainActivity extends Activity
         }, GAME_TICK_FRAME);
     }
 
+    private void setQuestion() {
+        questionLengthText.setText(String.valueOf(question.length()));
+    }
+
+    private void changeChatMode() {
+        if(chatMode == CHAT_NORMAL) {
+
+            chatMode = CHAT_ANSWER;
+            answerBtn.setImageResource(R.drawable.ic_chat_black_48dp);
+            input.setHint(R.string.input_answer_hint);
+            input.setTextColor(Color.WHITE);
+            AnimationUtil.startFromLeftSlideAppearAnimation(
+                    answerView, inkViewWidth - ViewUtil.dpToPx(this, 50));
+
+        }else {
+
+            chatMode = CHAT_NORMAL;
+            answerBtn.setImageResource(R.drawable.ic_pan_tool_black_48dp);
+            input.setTextColor(getResources().getColor(R.color.primary_text));
+            input.setHint(R.string.input_hint);
+            AnimationUtil.startToLeftSlideDisAppearAnimation(
+                    answerView, inkViewWidth - ViewUtil.dpToPx(this, 50));
+
+        }
+    }
+
     private void clearPlayerPenaltyTime() {
         for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
             playerPenaltyTime[i] = 0;
         }
     }
 
-    // Game tick -- update countdown, check if game ended.
     void gameTick() {
         if (leftTime > 0) {
             leftTime -= GAME_TICK_FRAME;
         }
 
-        // update countdown
-        tickProgress.setProgress((int) (((float) leftTime / gameDuration) * 100));
+        tickProgress.setProgress(((float) leftTime / gameDuration) * 100);
+        tickProgressText.setText(String.valueOf(leftTime / 1000));
 
         if (leftTime <= 0) {
             finishGame();
@@ -843,7 +1022,7 @@ public class MainActivity extends Activity
                 drawPoint(savedPNumMap.remove(pNum));
             }
 
-        }else if(msg.type >= 100 && msg.type <= 100) {
+        }else if(msg.type >= 100 && msg.type <= 101) {
 
             String senderId = rtm.getSenderParticipantId();
             showChatMessage(senderId, msg);
@@ -858,7 +1037,14 @@ public class MainActivity extends Activity
     private void sendInputMessage() {
         String text = input.getText().toString();
         if(!TextUtils.isEmpty(text)) {
-            GameMessage msg = makeMessage((byte) 100, text, 0, 0, 0, System.currentTimeMillis());
+            GameMessage msg = makeMessage(
+                    chatMode == CHAT_NORMAL ? (byte) 100 : (byte) 101,
+                    text,
+                    0,
+                    0,
+                    0,
+                    System.currentTimeMillis()
+            );
             broadcastScore(false, ByteUtil.toByteArray(msg));
             showChatMessage(mMyId, msg);
             input.setText("");
@@ -952,17 +1138,12 @@ public class MainActivity extends Activity
     }
 
     private void showChatMessage(String senderId, GameMessage msg) {
-        if(mParticipants != null) {
-            for (int i = 0; i < mParticipants.size(); i++) {
-                if(mParticipants.get(i).getParticipantId().equals(senderId)) {
-                    pChatViews[i].setText(msg.text);
-                    AnimationUtil.startFromLeftSlideAppearAnimation(
-                            pChatViews[i],
-                            ViewUtil.dpToPx(this, 30)
-                    );
-                    return;
-                }
-            }
+        if(playerMap.containsKey(senderId)) {
+            Chat chat = new Chat();
+            chat.player = playerMap.get(senderId);
+            chat.type = msg.type;
+            chat.message = msg.text;
+            chatAdapter.addChat(chat);
         }
     }
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -75,139 +74,148 @@
 
         </FrameLayout>
 
-        <LinearLayout
-            android:id="@+id/playersLy"
-            android:layout_width="wrap_content"
+        <FrameLayout
+            android:id="@+id/interfaceLy"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="35dp"
-            android:orientation="vertical">
+            android:background="@color/white"
+            android:elevation="5dp">
 
             <FrameLayout
-                android:id="@+id/p1Ly"
-                android:orientation="vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp">
+                android:id="@+id/tickProgressLy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
+                    android:id="@+id/tickProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    app:rcRadius="0dp"
+                    app:rcBackgroundPadding="0dp"
+                    app:rcProgressColor="@color/colorPrimary"
+                    app:rcSecondaryProgressColor="@color/colorPrimaryDark" />
 
                 <TextView
-                    android:id="@+id/p1Name"
+                    android:id="@+id/tickProgressText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="12dp"
-                    android:text="Title" />
-
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/p1Img"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_marginTop="20dp"
-                    android:src="@drawable/default_profile_circle" />
-
-                <TextView
-                    android:id="@+id/p1Chat"
-                    android:background="@color/colorPrimary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginLeft="50dp"/>
+                    android:textColor="@color/white"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="10dp"/>
 
             </FrameLayout>
 
-            <FrameLayout
-                android:id="@+id/p2Ly"
-                android:orientation="vertical"
+            <LinearLayout
+                android:id="@+id/playersLy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="5dp">
+                android:layout_marginTop="30dp"
+                android:layout_marginLeft="5dp"
+                android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/p2Name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12dp"
-                    android:text="Title" />
+                <FrameLayout
+                    android:id="@+id/p1Ly"
+                    android:layout_width="40dp"
+                    android:layout_height="60dp"
+                    android:padding="5dp">
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/p2Img"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_marginTop="20dp"
-                    android:src="@drawable/default_profile_circle" />
+                    <TextView
+                        android:id="@+id/p1Name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:text="Title" />
 
-                <TextView
-                    android:id="@+id/p2Chat"
-                    android:background="@color/colorPrimary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginLeft="50dp"/>
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p1Img"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginBottom="13dp"
+                        android:src="@drawable/default_profile_circle" />
 
-            </FrameLayout>
+                </FrameLayout>
 
-            <FrameLayout
-                android:id="@+id/p3Ly"
-                android:orientation="vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp">
+                <FrameLayout
+                    android:id="@+id/p2Ly"
+                    android:layout_width="40dp"
+                    android:layout_height="60dp"
+                    android:padding="5dp">
 
-                <TextView
-                    android:id="@+id/p3Name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12dp"
-                    android:text="Title" />
+                    <TextView
+                        android:id="@+id/p2Name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:text="Title" />
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/p3Img"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_marginTop="20dp"
-                    android:src="@drawable/default_profile_circle" />
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p2Img"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginBottom="13dp"
+                        android:src="@drawable/default_profile_circle" />
 
-                <TextView
-                    android:id="@+id/p3Chat"
-                    android:background="@color/colorPrimary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginLeft="50dp"/>
+                </FrameLayout>
 
-            </FrameLayout>
+                <FrameLayout
+                    android:id="@+id/p3Ly"
+                    android:layout_width="40dp"
+                    android:layout_height="60dp"
+                    android:padding="5dp">
 
-            <FrameLayout
-                android:id="@+id/p4Ly"
-                android:orientation="vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp">
+                    <TextView
+                        android:id="@+id/p3Name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:text="Title" />
 
-                <TextView
-                    android:id="@+id/p4Name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12dp"
-                    android:text="Title" />
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p3Img"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginBottom="13dp"
+                        android:src="@drawable/default_profile_circle" />
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/p4Img"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_marginTop="20dp"
-                    android:src="@drawable/default_profile_circle" />
+                </FrameLayout>
 
-                <TextView
-                    android:id="@+id/p4Chat"
-                    android:background="@color/colorPrimary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginLeft="50dp"/>
+                <FrameLayout
+                    android:id="@+id/p4Ly"
+                    android:layout_width="40dp"
+                    android:layout_height="60dp"
+                    android:padding="5dp">
 
-            </FrameLayout>
+                    <TextView
+                        android:id="@+id/p4Name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:text="Title" />
 
-        </LinearLayout>
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p4Img"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginBottom="13dp"
+                        android:src="@drawable/default_profile_circle" />
+
+                </FrameLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
 
         <FrameLayout
             android:id="@+id/drawToolLy"
@@ -222,30 +230,109 @@
         <FrameLayout
             android:id="@+id/inputLy"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_gravity="bottom"
             android:background="@color/white"
+            android:orientation="horizontal"
             android:elevation="5dp">
+
+            <View
+                android:id="@+id/answerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/redIndentity"/>
+
+            <ImageButton
+                android:id="@+id/answerBtn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="centerInside"
+                android:padding="15dp"
+                android:src="@drawable/ic_pan_tool_black_48dp"
+                android:tint="@color/primary_white_text"
+                android:background="@drawable/main_circle_button"/>
 
             <EditText
                 android:id="@+id/input"
                 android:background="@color/none"
-                android:layout_margin="16dp"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="65dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:maxLength="50"
                 android:layout_gravity="center"
-                android:maxLines="3"
+                android:maxLines="1"
                 android:imeOptions="actionDone"
-                android:inputType="text"/>
+                android:inputType="text"
+                android:hint="@string/input_hint"/>
+
+            <Button
+                android:id="@+id/sendBtn"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_gravity="right"
+                android:text="@string/send"
+                android:backgroundTint="@color/primary_white_text"
+                android:textColor="@color/AccentColor"/>
 
         </FrameLayout>
 
-        <ProgressBar
-            style="?android:attr/progressBarStyleHorizontal"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tickProgress" />
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="60dp">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:layout_gravity="bottom|right"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/question_icon"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="@color/disable_text"
+                    android:textSize="20dp"
+                    android:text="x"/>
+
+                <TextView
+                    android:id="@+id/questionLengthText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="@color/disable_text"
+                    android:textSize="30dp"/>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="250dp"
+            android:layout_height="105dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="60dp"
+            android:layout_gravity="bottom">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/chatListView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom">
+            </android.support.v7.widget.RecyclerView>
+
+        </FrameLayout>
 
     </FrameLayout>
 </FrameLayout>
