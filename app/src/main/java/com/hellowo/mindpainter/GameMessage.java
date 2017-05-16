@@ -3,7 +3,7 @@ package com.hellowo.mindpainter;
 import java.io.Serializable;
 
 public class GameMessage implements Serializable {
-    byte type;
+    int type;
     String text;
     int pNum;
     float x;

@@ -18,6 +18,7 @@ package com.hellowo.mindpainter;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -49,6 +50,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -68,6 +70,7 @@ import com.google.android.gms.games.multiplayer.realtime.RoomUpdateListener;
 import com.google.example.games.basegameutils.BaseGameUtils;
 import com.hellowo.mindpainter.utils.AnimationUtil;
 import com.hellowo.mindpainter.utils.ByteUtil;
+import com.hellowo.mindpainter.utils.DialogUtil;
 import com.hellowo.mindpainter.utils.ViewUtil;
 
 import java.util.ArrayList;
@@ -150,9 +153,11 @@ public class MainActivity extends Activity
         initPlayerLayout();
         initChatListView();
         initInputView();
+        initDrawToolView();
         initQuestionView();
         initFab();
         initProgressView();
+        initOhterViews();
     }
 
     InkView inkView;
@@ -202,11 +207,11 @@ public class MainActivity extends Activity
                 GameMessage msg;
 
                 if(action == MotionEvent.ACTION_DOWN) {
-                    msg = makeMessage((byte) 0, null, pNum, x, y, time);
+                    msg = makeMessage(0, null, pNum, x, y, time);
                 }else if(action == MotionEvent.ACTION_MOVE) {
-                    msg = makeMessage((byte) 1, null, pNum, x, y, time);
+                    msg = makeMessage(1, null, pNum, x, y, time);
                 }else {
-                    msg = makeMessage((byte) 2, null, pNum, x, y, time);
+                    msg = makeMessage(2, null, pNum, x, y, time);
                 }
 
                 broadcastScore(true, ByteUtil.toByteArray(msg));
@@ -214,26 +219,41 @@ public class MainActivity extends Activity
         });
     }
 
-    FrameLayout[] pLayouts = new FrameLayout[4];
-    TextView[] pNameViews = new TextView[4];
-    CircleImageView[] pImgViews = new CircleImageView[4];
+    FrameLayout[] pLayouts = new FrameLayout[MAX_PLAYER_COUNT];
+    TextView[] pNameViews = new TextView[MAX_PLAYER_COUNT];
+    TextView[] pScoreViews = new TextView[MAX_PLAYER_COUNT];
+    CircleImageView[] pImgViews = new CircleImageView[MAX_PLAYER_COUNT];
+    View[] pPenaltyViews = new View[MAX_PLAYER_COUNT];
+    LottieAnimationView[] pStarViews = new LottieAnimationView[MAX_PLAYER_COUNT];
 
     private void initPlayerLayout() {
         pLayouts[0] = (FrameLayout) findViewById(R.id.p1Ly);
         pNameViews[0] = (TextView) findViewById(R.id.p1Name);
         pImgViews[0] = (CircleImageView) findViewById(R.id.p1Img);
+        pScoreViews[0] = (TextView) findViewById(R.id.p1Score);
+        pPenaltyViews[0] = findViewById(R.id.p1Penalty);
+        pStarViews[0] = (LottieAnimationView) findViewById(R.id.p1Star);
 
         pLayouts[1] = (FrameLayout) findViewById(R.id.p2Ly);
         pNameViews[1] = (TextView) findViewById(R.id.p2Name);
         pImgViews[1] = (CircleImageView) findViewById(R.id.p2Img);
+        pScoreViews[1] = (TextView) findViewById(R.id.p2Score);
+        pPenaltyViews[1] = findViewById(R.id.p2Penalty);
+        pStarViews[1] = (LottieAnimationView) findViewById(R.id.p2Star);
 
         pLayouts[2] = (FrameLayout) findViewById(R.id.p3Ly);
         pNameViews[2] = (TextView) findViewById(R.id.p3Name);
         pImgViews[2] = (CircleImageView) findViewById(R.id.p3Img);
+        pScoreViews[2] = (TextView) findViewById(R.id.p3Score);
+        pPenaltyViews[2] = findViewById(R.id.p3Penalty);
+        pStarViews[2] = (LottieAnimationView) findViewById(R.id.p3Star);
 
         pLayouts[3] = (FrameLayout) findViewById(R.id.p4Ly);
         pNameViews[3] = (TextView) findViewById(R.id.p4Name);
         pImgViews[3] = (CircleImageView) findViewById(R.id.p4Img);
+        pScoreViews[3] = (TextView) findViewById(R.id.p4Score);
+        pPenaltyViews[3] = findViewById(R.id.p4Penalty);
+        pStarViews[3] = (LottieAnimationView) findViewById(R.id.p4Star);
     }
 
     RecyclerView chatListView;
@@ -364,6 +384,10 @@ public class MainActivity extends Activity
         });
     }
 
+
+    private void initDrawToolView() {
+    }
+
     TextView questionLengthText;
 
     private void initQuestionView() {
@@ -374,13 +398,24 @@ public class MainActivity extends Activity
     private void initFab() {
     }
 
+    FrameLayout interfaceLy;
     RoundCornerProgressBar tickProgress;
     TextView tickProgressText;
 
     private void initProgressView() {
+        interfaceLy = (FrameLayout) findViewById(R.id.interfaceLy);
         tickProgress = (RoundCornerProgressBar) findViewById(R.id.tickProgress);
         tickProgress.setBackgroundColor(Color.LTGRAY);
         tickProgressText = (TextView) findViewById(R.id.tickProgressText);
+        interfaceLy.setTranslationY(-ViewUtil.dpToPx(this, 25));
+    }
+
+    TextView popupText;
+
+    private void initOhterViews() {
+        popupText = (TextView) findViewById(R.id.popupText);
+        popupText.setScaleX(0);
+        popupText.setScaleY(0);
     }
 
     @Override
@@ -851,7 +886,7 @@ public class MainActivity extends Activity
     }
 
     /*
-     * GAME LOGIC SECTION. Methods that implement the game's rules.
+     * 게임 로직 섹션 Methods that implement the game's rules.
      */
 
     // Current state of the game:
@@ -870,9 +905,12 @@ public class MainActivity extends Activity
     int pNum = 0; // 현재 그려지는 포인트 넘버
     int gameStatus = GAME_STATUS_READYING;
     int chatMode = CHAT_NORMAL;
+    int round = 1;
     String currentTurnPlayerId;
     String question = "question";
     HashMap<Integer, GameMessage> savedPNumMap = new HashMap<>();
+
+    QuestionDialog questionDialog;
 
     // Reset game variables in preparation for a new game.
     void resetGameVars() {
@@ -882,10 +920,18 @@ public class MainActivity extends Activity
         chatMode = CHAT_NORMAL;
     }
 
-    // Start the gameplay phase of the game.
+    private void resetView() {
+        inkView.clear();
+        tickProgress.setProgress(100);
+        tickProgressText.setText("");
+
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            pPenaltyViews[i].setTranslationY(ViewUtil.dpToPx(this, 70));
+        }
+    }
+
     void startGame(boolean multiplayer) {
         mMultiplayer = multiplayer;
-        gameStatus = GAME_STATUS_READYING;
 
         switchToScreen(R.id.screen_game);
         clearPlayerPenaltyTime();
@@ -899,15 +945,64 @@ public class MainActivity extends Activity
 
         }
 
-        inkView.clear();
-        tickProgress.setProgress(100);
-        tickProgressText.setText("");
+        resetView();
 
         if(chatMode == CHAT_ANSWER) {
             changeChatMode();
         }
 
+        startQuestionSelect();
+    }
+
+    private boolean isMyTurn() {
+        try{
+            return currentTurnPlayerId.equals(mMyId);
+        }catch (Exception ignored){}
+        return true;
+    }
+
+    private void startQuestionSelect() {
+        gameStatus = GAME_STATUS_READYING;
+        inkView.setEnabled(false);
+        questionDialog = new QuestionDialog(this, round, isMyTurn());
+        DialogUtil.showDialog(questionDialog, false, true, true, false);
+    }
+
+    public void selectQuestion() {
+        GameMessage msg = makeMessage(
+                200,
+                null,
+                0,
+                Question.question_level,
+                Question.question_num,
+                System.currentTimeMillis()
+        );
+        broadcastScore(true, ByteUtil.toByteArray(msg));
         setQuestion();
+        startDrawing();
+    }
+
+    public void setQuestion() {
+        if(isMyTurn()) {
+            questionLengthText.setText(String.valueOf(Question.getCurrentQuestion()));
+        }else{
+            questionLengthText.setText("x " + String.valueOf(Question.getCurrentQuestion().length()));
+        }
+        AnimationUtil.startScaleShowAnimation(questionLengthText);
+    }
+
+    public void startDrawing() {
+        gameStatus = GAME_STATUS_DRAWING;
+        showPopupText(R.string.start);
+        startTickProgress();
+
+        if(isMyTurn()) {
+            inkView.setEnabled(true);
+        }
+    }
+
+    private void startTickProgress() {
+        AnimationUtil.startFromTopSlideAppearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
 
         final Handler h = new Handler();
         h.postDelayed(new Runnable() {
@@ -919,10 +1014,6 @@ public class MainActivity extends Activity
                 h.postDelayed(this, GAME_TICK_FRAME);
             }
         }, GAME_TICK_FRAME);
-    }
-
-    private void setQuestion() {
-        questionLengthText.setText(String.valueOf(question.length()));
     }
 
     private void changeChatMode() {
@@ -967,7 +1058,7 @@ public class MainActivity extends Activity
     }
 
     private void finishGame() {
-
+        AnimationUtil.startToTopDisappearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
     }
 
     private void drawPoint(GameMessage msg) {
@@ -1000,102 +1091,12 @@ public class MainActivity extends Activity
         savedPNumMap.put(msg.pNum, msg);
     }
 
-    /*
-     * 통신 섹션 : 게임 네트워크 프로토콜 구현 메소드
-     */
-
-    @Override
-    public void onRealTimeMessageReceived(RealTimeMessage rtm) {
-        byte[] buf = rtm.getMessageData();
-        GameMessage msg = (GameMessage) ByteUtil.toObject(buf);
-        Log.d(TAG, "Message received: " + msg.time);
-
-        if(msg.type >= 0 && msg.type <= 2) {
-
-            if(msg.pNum == pNum) {
-                drawPoint(msg);
-            }else {
-                savePoint(msg);
-            }
-
-            while(savedPNumMap.containsKey(pNum)) {
-                drawPoint(savedPNumMap.remove(pNum));
-            }
-
-        }else if(msg.type >= 100 && msg.type <= 101) {
-
-            String senderId = rtm.getSenderParticipantId();
-            showChatMessage(senderId, msg);
-
-        }
-    }
-
-    private void sendMyInformation() {
-
-    }
-
-    private void sendInputMessage() {
-        String text = input.getText().toString();
-        if(!TextUtils.isEmpty(text)) {
-            GameMessage msg = makeMessage(
-                    chatMode == CHAT_NORMAL ? (byte) 100 : (byte) 101,
-                    text,
-                    0,
-                    0,
-                    0,
-                    System.currentTimeMillis()
-            );
-            broadcastScore(false, ByteUtil.toByteArray(msg));
-            showChatMessage(mMyId, msg);
-            input.setText("");
-        }
-    }
-
-    // Broadcast my score to everybody else.
-    void broadcastScore(boolean reliable, byte[] mMsgBuf) {
-        if (!mMultiplayer)
-            return; // playing single-player mode
-
-        // Send to every other participant.
-        for (Participant p : mParticipants) {
-            if (p.getParticipantId().equals(mMyId))
-                continue;
-            if (p.getStatus() != Participant.STATUS_JOINED)
-                continue;
-            if (reliable) {
-                // final score notification must be sent via reliable message
-                Games.RealTimeMultiplayer.sendReliableMessage(
-                        mGoogleApiClient,
-                        null,
-                        mMsgBuf,
-                        mRoomId,
-                        p.getParticipantId()
-                );
-            } else {
-                // it's an interim score notification, so we can use unreliable
-                Games.RealTimeMultiplayer.sendUnreliableMessage(
-                        mGoogleApiClient,
-                        mMsgBuf,
-                        mRoomId,
-                        p.getParticipantId()
-                );
-            }
-        }
-    }
-
-    /*
-     * UI 섹션 : 게임 UI 구현 함수
-     */
-
-    // This array lists everything that's clickable, so we can install click
-    // event handlers.
     final static int[] CLICKABLES = {
             R.id.button_accept_popup_invitation, R.id.button_invite_players,
             R.id.button_quick_game, R.id.button_see_invitations, R.id.button_sign_in,
             R.id.button_sign_out, R.id.button_single_player, R.id.button_single_player_2
     };
 
-    // This array lists all the individual screens our game has.
     final static int[] SCREENS = {
             R.id.screen_game, R.id.screen_main, R.id.screen_sign_in,
             R.id.screen_wait
@@ -1122,7 +1123,7 @@ public class MainActivity extends Activity
     }
 
     private void setBottomViews() {
-        if(currentTurnPlayerId == mMyId) {
+        if(isMyTurn()) {
             showDrawToolView();
         }else {
             showInputView();
@@ -1170,11 +1171,109 @@ public class MainActivity extends Activity
     }
 
     void switchToMainScreen() {
+        if(questionDialog != null && questionDialog.isShowing()) {
+            questionDialog.dismiss();
+        }
+
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             switchToScreen(R.id.screen_main);
         }
         else {
             switchToScreen(R.id.screen_sign_in);
+        }
+    }
+
+    /*
+     * 통신 섹션 : 게임 네트워크 프로토콜 구현 메소드
+     */
+
+    void broadcastScore(boolean reliable, byte[] mMsgBuf) {
+        if (!mMultiplayer)
+            return; // playing single-player mode
+
+        // Send to every other participant.
+        for (Participant p : mParticipants) {
+            if (p.getParticipantId().equals(mMyId))
+                continue;
+            if (p.getStatus() != Participant.STATUS_JOINED)
+                continue;
+            if (reliable) {
+                // final score notification must be sent via reliable message
+                Games.RealTimeMultiplayer.sendReliableMessage(
+                        mGoogleApiClient,
+                        null,
+                        mMsgBuf,
+                        mRoomId,
+                        p.getParticipantId()
+                );
+            } else {
+                // it's an interim score notification, so we can use unreliable
+                Games.RealTimeMultiplayer.sendUnreliableMessage(
+                        mGoogleApiClient,
+                        mMsgBuf,
+                        mRoomId,
+                        p.getParticipantId()
+                );
+            }
+        }
+    }
+
+    @Override
+    public void onRealTimeMessageReceived(RealTimeMessage rtm) {
+        byte[] buf = rtm.getMessageData();
+        GameMessage msg = (GameMessage) ByteUtil.toObject(buf);
+        Log.d(TAG, "Message received: " + msg.type);
+
+        if(msg.type >= 0 && msg.type <= 2) {
+
+            if(msg.pNum == pNum) {
+                drawPoint(msg);
+            }else {
+                savePoint(msg);
+            }
+
+            while(savedPNumMap.containsKey(pNum)) {
+                drawPoint(savedPNumMap.remove(pNum));
+            }
+
+        }else if(msg.type >= 100 && msg.type <= 101) {
+
+            String senderId = rtm.getSenderParticipantId();
+            showChatMessage(senderId, msg);
+
+        }else if(msg.type == 200) {
+
+            Question.selectQuestion((int)msg.x, (int)msg.y);
+            setQuestion();
+            if(questionDialog != null) {
+                questionDialog.selectedQuestion();
+            }
+
+        }
+    }
+
+    private void sendMyInformation() {
+
+    }
+
+    private void sendInputMessage() {
+        String text = input.getText().toString();
+        if(!TextUtils.isEmpty(text)) {
+            GameMessage msg = makeMessage(
+                    chatMode == CHAT_NORMAL ? 100 : 101,
+                    text,
+                    0,
+                    0,
+                    0,
+                    System.currentTimeMillis()
+            );
+            broadcastScore(false, ByteUtil.toByteArray(msg));
+            showChatMessage(mMyId, msg);
+            input.setText("");
+
+            if(chatMode == CHAT_ANSWER) {
+                changeChatMode();
+            }
         }
     }
 
@@ -1196,7 +1295,7 @@ public class MainActivity extends Activity
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
-    public static GameMessage makeMessage(byte type,
+    public static GameMessage makeMessage(int type,
                                           String text,
                                           int pNum,
                                           float x,
@@ -1210,5 +1309,16 @@ public class MainActivity extends Activity
         message.y = y;
         message.time = time;
         return message;
+    }
+
+    public void showPopupText(int stringId){
+        popupText.setText(stringId);
+        AnimationUtil.startScaleShowAnimation(popupText);
+        popupText.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+               AnimationUtil.startScaleHideAnimation(popupText);
+            }
+        }, 1000);
     }
 }

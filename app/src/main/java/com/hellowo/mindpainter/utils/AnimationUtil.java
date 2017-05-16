@@ -4,6 +4,8 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.view.View;
+import android.view.animation.OvershootInterpolator;
+import android.widget.FrameLayout;
 
 /**
  * Created by Day2Life Android Dev on 2016-09-05.
@@ -24,7 +26,7 @@ public class AnimationUtil {
                 ObjectAnimator.ofFloat(view, "scaleY",
                         0f, 1f).setDuration(ANIMATION_DURATION)
         );
-        animSet.setInterpolator(new FastOutSlowInInterpolator());
+        animSet.setInterpolator(new OvershootInterpolator());
         animSet.start();
     }
 
@@ -96,12 +98,19 @@ public class AnimationUtil {
         final AnimatorSet animSet = new AnimatorSet();
         animSet.playTogether(
                 ObjectAnimator.ofFloat(view, "translationY",
-                        0, -offset).setDuration(ANIMATION_DURATION),
-                ObjectAnimator.ofFloat(view, "alpha",
-                        1f, 0f).setDuration(ANIMATION_DURATION)
+                        0, -offset).setDuration(ANIMATION_DURATION)
         );
         animSet.setInterpolator(new FastOutSlowInInterpolator());
         animSet.start();
     }
 
+    public static void startFromTopSlideAppearAnimation(FrameLayout view, int offset) {
+        final AnimatorSet animSet = new AnimatorSet();
+        animSet.playTogether(
+                ObjectAnimator.ofFloat(view, "translationY",
+                        -offset, 0).setDuration(ANIMATION_DURATION)
+        );
+        animSet.setInterpolator(new FastOutSlowInInterpolator());
+        animSet.start();
+    }
 }

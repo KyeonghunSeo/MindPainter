@@ -74,6 +74,16 @@
 
         </FrameLayout>
 
+        <TextView
+            android:id="@+id/popupText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30dp"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center"
+            android:textStyle="normal|bold"/>
+
         <FrameLayout
             android:id="@+id/interfaceLy"
             android:layout_width="match_parent"
@@ -82,7 +92,6 @@
             android:elevation="5dp">
 
             <FrameLayout
-                android:id="@+id/tickProgressLy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -107,109 +116,233 @@
 
             <LinearLayout
                 android:id="@+id/playersLy"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:layout_marginLeft="5dp"
+                android:layout_marginTop="25dp"
                 android:orientation="horizontal">
 
                 <FrameLayout
                     android:id="@+id/p1Ly"
-                    android:layout_width="40dp"
-                    android:layout_height="60dp"
-                    android:padding="5dp">
+                    android:layout_width="0dp"
+                    android:layout_height="70dp"
+                    android:layout_weight="1">
 
                     <TextView
+                        android:layout_margin="5dp"
                         android:id="@+id/p1Name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:layout_gravity="bottom|center_horizontal"
                         android:text="Title" />
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/p1Img"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:gravity="bottom">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/p1Img"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/default_profile_circle" />
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:id="@+id/p1Star"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            app:lottie_fileName="Favorite Star.json"/>
+
+                        <TextView
+                            android:id="@+id/p1Score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="18dp"
+                            android:textColor="@color/colorAccent"
+                            android:text="0"
+                            android:textStyle="normal|bold" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/p1Penalty"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginBottom="13dp"
-                        android:src="@drawable/default_profile_circle" />
+                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/p2Ly"
-                    android:layout_width="40dp"
-                    android:layout_height="60dp"
-                    android:padding="5dp">
+                    android:layout_width="0dp"
+                    android:layout_height="70dp"
+                    android:layout_weight="1">
 
                     <TextView
+                        android:layout_margin="5dp"
                         android:id="@+id/p2Name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:layout_gravity="bottom|center_horizontal"
                         android:text="Title" />
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/p2Img"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:gravity="bottom">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/p2Img"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/default_profile_circle" />
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:id="@+id/p2Star"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            app:lottie_fileName="Favorite Star.json"/>
+
+                        <TextView
+                            android:id="@+id/p2Score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="18dp"
+                            android:textColor="@color/colorAccent"
+                            android:text="0"
+                            android:textStyle="normal|bold" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/p2Penalty"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginBottom="13dp"
-                        android:src="@drawable/default_profile_circle" />
+                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/p3Ly"
-                    android:layout_width="40dp"
-                    android:layout_height="60dp"
-                    android:padding="5dp">
+                    android:layout_width="0dp"
+                    android:layout_height="70dp"
+                    android:layout_weight="1">
 
                     <TextView
+                        android:layout_margin="5dp"
                         android:id="@+id/p3Name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:layout_gravity="bottom|center_horizontal"
                         android:text="Title" />
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/p3Img"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:gravity="bottom">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/p3Img"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/default_profile_circle" />
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:id="@+id/p3Star"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            app:lottie_fileName="Favorite Star.json"/>
+
+                        <TextView
+                            android:id="@+id/p3Score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="18dp"
+                            android:textColor="@color/colorAccent"
+                            android:text="0"
+                            android:textStyle="normal|bold" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/p3Penalty"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginBottom="13dp"
-                        android:src="@drawable/default_profile_circle" />
+                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/p4Ly"
-                    android:layout_width="40dp"
-                    android:layout_height="60dp"
-                    android:padding="5dp">
+                    android:layout_width="0dp"
+                    android:layout_height="70dp"
+                    android:layout_weight="1">
 
                     <TextView
+                        android:layout_margin="5dp"
                         android:id="@+id/p4Name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:layout_gravity="bottom|center_horizontal"
                         android:text="Title" />
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/p4Img"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:gravity="center_vertical">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/p4Img"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/default_profile_circle" />
+
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:id="@+id/p4Star"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            app:lottie_fileName="Favorite Star.json"
+                            app:lottie_progress="100"/>
+
+                        <TextView
+                            android:id="@+id/p4Score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="18dp"
+                            android:textColor="@color/colorAccent"
+                            android:text="0"
+                            android:textStyle="normal|bold" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/p4Penalty"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginBottom="13dp"
-                        android:src="@drawable/default_profile_circle" />
+                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
@@ -291,7 +424,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:layout_gravity="bottom|right"
-                android:gravity="bottom">
+                android:gravity="center_vertical">
 
                 <ImageView
                     android:layout_width="40dp"
@@ -299,20 +432,12 @@
                     android:src="@drawable/question_icon"/>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:textColor="@color/disable_text"
-                    android:textSize="20dp"
-                    android:text="x"/>
-
-                <TextView
                     android:id="@+id/questionLengthText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
+                    android:layout_marginLeft="2dp"
                     android:textColor="@color/disable_text"
-                    android:textSize="30dp"/>
+                    android:textSize="25dp"/>
 
             </LinearLayout>
 
