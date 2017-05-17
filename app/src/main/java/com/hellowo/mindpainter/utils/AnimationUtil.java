@@ -54,9 +54,7 @@ public class AnimationUtil {
         final AnimatorSet animSet = new AnimatorSet();
         animSet.playTogether(
                 ObjectAnimator.ofFloat(view, "translationY",
-                        offset, 0).setDuration(ANIMATION_DURATION),
-                ObjectAnimator.ofFloat(view, "alpha",
-                        0f, 1f).setDuration(ANIMATION_DURATION)
+                        offset, 0).setDuration(ANIMATION_DURATION)
         );
         animSet.setInterpolator(new FastOutSlowInInterpolator());
         animSet.start();
@@ -99,6 +97,16 @@ public class AnimationUtil {
         animSet.playTogether(
                 ObjectAnimator.ofFloat(view, "translationY",
                         0, -offset).setDuration(ANIMATION_DURATION)
+        );
+        animSet.setInterpolator(new FastOutSlowInInterpolator());
+        animSet.start();
+    }
+
+    public static void startToBottomDisappearAnimation(View view, float offset){
+        final AnimatorSet animSet = new AnimatorSet();
+        animSet.playTogether(
+                ObjectAnimator.ofFloat(view, "translationY",
+                        0, offset).setDuration(ANIMATION_DURATION)
         );
         animSet.setInterpolator(new FastOutSlowInInterpolator());
         animSet.start();

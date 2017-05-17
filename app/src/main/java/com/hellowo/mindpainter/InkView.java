@@ -66,6 +66,8 @@ public class InkView extends View {
     RectF dirty;
     InkListener listener;
 
+    boolean isCanDrawing = false;
+
 
     public InkView(Context context) {
         super(context);
@@ -114,6 +116,10 @@ public class InkView extends View {
     public boolean onTouchEvent(MotionEvent e) {
         int action = e.getAction();
         boolean isValidAction = false;
+
+        if(!isCanDrawing) {
+            return false;
+        }
 
         if (action == MotionEvent.ACTION_DOWN) {
             isValidAction = true;
@@ -239,6 +245,15 @@ public class InkView extends View {
      *
      * @param color The color value
      */
+    public void setColorWithListener(int color) {
+        this.color = color;
+        paint.setColor(color);
+        if(listener != null){
+            listener.onSetColor(pointNum, color);
+            pointNum++;
+        }
+    }
+
     public void setColor(int color) {
         this.color = color;
         paint.setColor(color);
@@ -355,7 +370,6 @@ public class InkView extends View {
         invalidate();
     }
 
-
     //--------------------------------------
     // Listener Interfaces
     //--------------------------------------
@@ -366,12 +380,21 @@ public class InkView extends View {
     public interface InkListener {
         void onInkClear();
         void onDraw(int action, int pNum, float x, float y, long time);
+        void onSetColor(int pNum, int color);
     }
 
 
     //--------------------------------------
     // Util
     //--------------------------------------
+
+    public void stopDrawing() {
+        isCanDrawing = false;
+    }
+
+    public void startDrawing() {
+        isCanDrawing = true;
+    }
 
     float getDensity() {
         return density;

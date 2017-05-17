@@ -15,6 +15,8 @@
 
 package com.hellowo.mindpainter;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +24,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -156,6 +159,7 @@ public class MainActivity extends Activity
     InkView inkView;
     int inkViewWidth;
     int inkViewHeight;
+    int deviceHeight;
 
     private void initInkView() {
         DisplayMetrics dm = new DisplayMetrics();
@@ -163,6 +167,7 @@ public class MainActivity extends Activity
 
         inkView = (InkView) findViewById(R.id.ink);
         inkViewWidth = dm.widthPixels;
+        deviceHeight = dm.heightPixels - getStatusBarHeight();
         inkViewHeight = (int) (inkViewWidth * 1.5f);
 
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
@@ -207,6 +212,12 @@ public class MainActivity extends Activity
                     msg = makeMessage(2, null, pNum, x, y, time);
                 }
 
+                broadcastScore(true, ByteUtil.toByteArray(msg));
+            }
+
+            @Override
+            public void onSetColor(int pNum, int color) {
+                GameMessage msg = makeMessage(3, String.valueOf(color), pNum, 0, 0, System.currentTimeMillis());
                 broadcastScore(true, ByteUtil.toByteArray(msg));
             }
         });
@@ -390,7 +401,12 @@ public class MainActivity extends Activity
         });
     }
 
+    DrawingToolView drawingToolView;
+
     private void initDrawToolView() {
+        drawingToolView = (DrawingToolView) findViewById(R.id.drawToolLy);
+        drawingToolView.init(this, inkView);
+        drawingToolView.setTranslationY(deviceHeight);
     }
 
     TextView questionLengthText;
@@ -764,16 +780,6 @@ public class MainActivity extends Activity
     @Override
     public void onLeftRoom(int statusCode, String roomId) {
         Log.d(TAG, "onLeftRoom, code " + statusCode);
-        currentTurnPlayerIndex = 0;
-        currentTurnPlayerId = null;
-        chatAdapter.clear();
-        round = 1;
-
-        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
-            pScoreViews[i].setText("0");
-            pDrawScoreViews[i].setText("0");
-        }
-
         switchToMainScreen();
     }
 
@@ -972,12 +978,17 @@ public class MainActivity extends Activity
             sendMyInformation();
             startQuestionSelect();
 
+        }else {
+
+            setBottomViews();
+            inkView.startDrawing();
+
         }
     }
 
     private void startQuestionSelect() {
         gameStatus = GAME_STATUS_READYING;
-        inkView.setEnabled(false);
+        inkView.stopDrawing();
         questionDialog = new QuestionDialog(this, round, isMyTurn());
         DialogUtil.showDialog(questionDialog, false, true, true, false);
     }
@@ -1001,7 +1012,8 @@ public class MainActivity extends Activity
         startTickProgress();
 
         if(isMyTurn()) {
-            inkView.setEnabled(true);
+            hideKeyPad();
+            inkView.startDrawing();
         }
     }
 
@@ -1118,13 +1130,17 @@ public class MainActivity extends Activity
                     getResources().getColor(R.color.colorPrimary),
                     2000
             );
-            mainAnimationView.setAnimation("Favorite Star.json");
         }else {
             showPopupText(
                     String.format(getString(R.string.correctAnswerPlayer), player.name),
                     getResources().getColor(R.color.colorPrimary),
                     2000
             );
+        }
+
+        if(player.id.equals(mMyId) || currentTurnPlayer.id.equals(mMyId)) {
+            mainAnimationView.setAnimation("Favorite Star.json");
+        }else {
             mainAnimationView.setAnimation("Tongue.json");
         }
 
@@ -1139,6 +1155,7 @@ public class MainActivity extends Activity
                 mainAnimationView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        mainAnimationView.cancelAnimation();
                         mainAnimationView.setVisibility(View.GONE);
                     }
                 }, 250);
@@ -1175,6 +1192,7 @@ public class MainActivity extends Activity
                 mainAnimationView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        mainAnimationView.cancelAnimation();
                         mainAnimationView.setVisibility(View.GONE);
                     }
                 }, 250);
@@ -1234,18 +1252,38 @@ public class MainActivity extends Activity
 
     private void setBottomViews() {
         if(isMyTurn()) {
-            showDrawToolView();
+
+            answerBtn.setEnabled(false);
+            AnimationUtil.startScaleHideAnimation(answerBtn);
+
+            final AnimatorSet animSet = new AnimatorSet();
+            animSet.playTogether(
+                    ObjectAnimator.ofFloat(drawingToolView, "translationY",
+                            drawingToolView.getTranslationY(), deviceHeight - ViewUtil.dpToPx(this, 50))
+                            .setDuration(250)
+            );
+            animSet.setInterpolator(new FastOutSlowInInterpolator());
+            animSet.start();
+
+            AnimationUtil.startToBottomDisappearAnimation(inputLy, ViewUtil.dpToPx(this, 50));
+
         }else {
-            showInputView();
+
+            answerBtn.setEnabled(true);
+            AnimationUtil.startScaleShowAnimation(answerBtn);
+
+            final AnimatorSet animSet = new AnimatorSet();
+            animSet.playTogether(
+                    ObjectAnimator.ofFloat(drawingToolView, "translationY",
+                            drawingToolView.getTranslationY(), deviceHeight)
+                            .setDuration(250)
+            );
+            animSet.setInterpolator(new FastOutSlowInInterpolator());
+            animSet.start();
+
+            AnimationUtil.startFromBottomSlideAppearAnimation(inputLy, ViewUtil.dpToPx(this, 50));
+
         }
-    }
-
-    private void showDrawToolView() {
-
-    }
-
-    private void showInputView() {
-
     }
 
     private void showChatMessage(String senderId, GameMessage msg) {
@@ -1281,8 +1319,22 @@ public class MainActivity extends Activity
     }
 
     void switchToMainScreen() {
+        currentTurnPlayerIndex = 0;
+        currentTurnPlayerId = null;
+        chatAdapter.clear();
+        round = 1;
+
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            pScoreViews[i].setText("0");
+            pDrawScoreViews[i].setText("0");
+        }
+
         if(questionDialog != null && questionDialog.isShowing()) {
             questionDialog.dismiss();
+        }
+
+        if(evaluateDialog != null && evaluateDialog.isShowing()) {
+            evaluateDialog.dismiss();
         }
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
@@ -1334,7 +1386,7 @@ public class MainActivity extends Activity
         GameMessage msg = (GameMessage) ByteUtil.toObject(buf);
         Log.d(TAG, "Message received: " + msg.type);
 
-        if(msg.type >= 0 && msg.type <= 2) {
+        if(msg.type >= 0 && msg.type <= 3) {
 
             if(msg.pNum == pNum) {
                 drawPoint(msg);
@@ -1415,10 +1467,14 @@ public class MainActivity extends Activity
             if(chatMode == CHAT_ANSWER) {
                 answer(text);
                 setChatMode(CHAT_NORMAL);
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
+                hideKeyPad();
             }
         }
+    }
+
+    private void hideKeyPad() {
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
     }
 
     /*
@@ -1476,6 +1532,9 @@ public class MainActivity extends Activity
             case 2:
                 inkView.onActionUp();
                 break;
+            case 3:
+                inkView.setColor(Integer.parseInt(msg.text));
+                break;
             default:
                 break;
         }
@@ -1520,5 +1579,14 @@ public class MainActivity extends Activity
             return currentTurnPlayerId.equals(mMyId);
         }catch (Exception ignored){}
         return true;
+    }
+
+    public int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 }

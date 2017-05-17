@@ -155,7 +155,7 @@
                         android:textStyle="normal|bold"
                         android:textSize="20dp"
                         android:text="0"
-                        android:background="@drawable/black_circle_fill"/>
+                        android:background="@drawable/black_alpha_circle_fill"/>
 
                     <LinearLayout
                         android:orientation="vertical"
@@ -252,7 +252,7 @@
                         android:textStyle="normal|bold"
                         android:textSize="20dp"
                         android:text="0"
-                        android:background="@drawable/black_circle_fill"/>
+                        android:background="@drawable/black_alpha_circle_fill"/>
 
                     <LinearLayout
                         android:orientation="vertical"
@@ -349,7 +349,7 @@
                         android:textStyle="normal|bold"
                         android:textSize="20dp"
                         android:text="0"
-                        android:background="@drawable/black_circle_fill"/>
+                        android:background="@drawable/black_alpha_circle_fill"/>
 
                     <LinearLayout
                         android:orientation="vertical"
@@ -446,7 +446,7 @@
                         android:textStyle="normal|bold"
                         android:textSize="20dp"
                         android:text="0"
-                        android:background="@drawable/black_circle_fill"/>
+                        android:background="@drawable/black_alpha_circle_fill"/>
 
                     <LinearLayout
                         android:orientation="vertical"
@@ -538,15 +538,13 @@
 
         </FrameLayout>
 
-        <FrameLayout
+        <com.hellowo.mindpainter.DrawingToolView
             android:id="@+id/drawToolLy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
             android:background="@color/white"
             android:elevation="5dp">
-
-        </FrameLayout>
+        </com.hellowo.mindpainter.DrawingToolView>
 
         <FrameLayout
             android:id="@+id/inputLy"
@@ -554,7 +552,6 @@
             android:layout_height="50dp"
             android:layout_gravity="bottom"
             android:background="@color/white"
-            android:orientation="horizontal"
             android:elevation="5dp">
 
             <View
