@@ -49,6 +49,7 @@
             android:id="@+id/newQuestionBtn"
             android:layout_marginTop="20dp"
             android:textColor="@color/white"
+            android:backgroundTint="@color/yellowIdentity"
             android:text="@string/new_question"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

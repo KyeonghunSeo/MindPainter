@@ -5,4 +5,6 @@ public class Player {
     String name;
     int level;
     int profileImageId;
+    int correctAnswerCount;
+    int successDrawingCount;
 }

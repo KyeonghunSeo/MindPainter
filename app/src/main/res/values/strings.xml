@@ -39,10 +39,21 @@
     <string name="input_hint">메세지를 입력해주세요</string>
     <string name="input_answer_hint">정답을 맞춰주세요!</string>
     <string name="send">전송</string>
-    <string name="your_turn_question">당신의 차례 입니다.\n제시어를 결정하고 게임을 시작해주세요.</string>
-    <string name="not_your_turn_question">다른 플레이어가 제시어를 준비중입니다.\n잠시만 기다려주세요.</string>
+    <string name="your_turn_question">당신의 차례 입니다.\n제시어를 결정하고 게임을 시작해주세요</string>
+    <string name="not_your_turn_question">다른 플레이어가 제시어를 준비중입니다.\n잠시만 기다려주세요</string>
     <string name="new_question">새로운 제시어 받기</string>
     <string name="start_game">게임 시작하기</string>
     <string name="start_soon">곧 게임을 시작합니다</string>
     <string name="start">게임시작!</string>
+    <string name="correctAnswer">정답입니다!</string>
+    <string name="correctAnswerPlayer">%s 님께서\n정답을 맞추셨습니다!</string>
+    <string name="incorrectAnswer">오답입니다!</string>
+    <string name="evaluate">그림 평가</string>
+    <string name="waiting_evaluate">당신의 그림을 평가하는 중입니다</string>
+    <string name="evaluate_this_round">이번 라운드의 그림을 평가해주세요</string>
+    <string name="good_sense">센스만점</string>
+    <string name="soso">보통</string>
+    <string name="bad">엉터리</string>
+    <string name="finish_evaluate">평가완료\n잠시 후 다음 라운드가 시작됩니다</string>
+    <string name="time_limit">시간초과</string>
 </resources>

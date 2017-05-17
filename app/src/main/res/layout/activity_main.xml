@@ -2,7 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:custom="http://schemas.android.com/tools">
 
     <!-- SIGN-IN SCREEN -->
     <LinearLayout android:id="@+id/screen_sign_in" style="@style/LLScreen">
@@ -74,26 +75,16 @@
 
         </FrameLayout>
 
-        <TextView
-            android:id="@+id/popupText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="30dp"
-            android:textColor="@color/colorPrimary"
-            android:layout_marginTop="20dp"
-            android:layout_gravity="center"
-            android:textStyle="normal|bold"/>
-
         <FrameLayout
             android:id="@+id/interfaceLy"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:elevation="5dp">
+            android:layout_height="wrap_content">
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:elevation="5dp">
 
                 <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
                     android:id="@+id/tickProgress"
@@ -117,19 +108,25 @@
             <LinearLayout
                 android:id="@+id/playersLy"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="65dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
                 android:layout_marginTop="25dp"
+                android:background="@color/white"
+                android:elevation="5dp"
                 android:orientation="horizontal">
 
                 <FrameLayout
                     android:id="@+id/p1Ly"
                     android:layout_width="0dp"
-                    android:layout_height="70dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1">
 
                     <TextView
                         android:layout_margin="5dp"
                         android:id="@+id/p1Name"
+                        android:textStyle="normal|bold"
+                        android:textColor="@color/primary_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
@@ -137,55 +134,96 @@
                         android:ellipsize="end"
                         android:text="Title" />
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p1Img"
                         android:layout_marginLeft="5dp"
                         android:layout_marginBottom="5dp"
                         android:layout_marginTop="25dp"
-                        android:gravity="bottom">
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/c1" />
 
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/p1Img"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/default_profile_circle" />
+                    <TextView
+                        android:id="@+id/p1Penalty"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:textColor="@color/white"
+                        android:gravity="center"
+                        android:textStyle="normal|bold"
+                        android:textSize="20dp"
+                        android:text="0"
+                        android:background="@drawable/black_circle_fill"/>
 
-                        <com.airbnb.lottie.LottieAnimationView
-                            android:id="@+id/p1Star"
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            app:lottie_fileName="Favorite Star.json"/>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="24dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
-                        <TextView
-                            android:id="@+id/p1Score"
+                        <LinearLayout
+                            android:orientation="horizontal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="18dp"
-                            android:textColor="@color/colorAccent"
-                            android:text="0"
-                            android:textStyle="normal|bold" />
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_lightbulb_outline_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p1Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:textColor="@color/primary_text"
+                                android:textSize="12dp"
+                                android:text="10" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_palette_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p1DrawScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/primary_text"
+                                android:gravity="center"
+                                android:textSize="12dp"
+                                android:text="7" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
-
-                    <View
-                        android:id="@+id/p1Penalty"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/p2Ly"
                     android:layout_width="0dp"
-                    android:layout_height="70dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1">
 
                     <TextView
                         android:layout_margin="5dp"
                         android:id="@+id/p2Name"
+                        android:textStyle="normal|bold"
+                        android:textColor="@color/primary_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
@@ -193,55 +231,96 @@
                         android:ellipsize="end"
                         android:text="Title" />
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p2Img"
                         android:layout_marginLeft="5dp"
                         android:layout_marginBottom="5dp"
                         android:layout_marginTop="25dp"
-                        android:gravity="bottom">
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/c2" />
 
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/p2Img"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/default_profile_circle" />
+                    <TextView
+                        android:id="@+id/p2Penalty"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:textColor="@color/white"
+                        android:gravity="center"
+                        android:textStyle="normal|bold"
+                        android:textSize="20dp"
+                        android:text="0"
+                        android:background="@drawable/black_circle_fill"/>
 
-                        <com.airbnb.lottie.LottieAnimationView
-                            android:id="@+id/p2Star"
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            app:lottie_fileName="Favorite Star.json"/>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="24dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
-                        <TextView
-                            android:id="@+id/p2Score"
+                        <LinearLayout
+                            android:orientation="horizontal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="18dp"
-                            android:textColor="@color/colorAccent"
-                            android:text="0"
-                            android:textStyle="normal|bold" />
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_lightbulb_outline_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p2Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:textColor="@color/primary_text"
+                                android:textSize="12dp"
+                                android:text="10" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_palette_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p2DrawScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/primary_text"
+                                android:gravity="center"
+                                android:textSize="12dp"
+                                android:text="7" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
-
-                    <View
-                        android:id="@+id/p2Penalty"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/p3Ly"
                     android:layout_width="0dp"
-                    android:layout_height="70dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1">
 
                     <TextView
                         android:layout_margin="5dp"
                         android:id="@+id/p3Name"
+                        android:textStyle="normal|bold"
+                        android:textColor="@color/primary_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
@@ -249,55 +328,96 @@
                         android:ellipsize="end"
                         android:text="Title" />
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p3Img"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="24dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/default_profile_circle" />
+
+                    <TextView
+                        android:id="@+id/p3Penalty"
                         android:layout_marginLeft="5dp"
                         android:layout_marginBottom="5dp"
                         android:layout_marginTop="25dp"
-                        android:gravity="bottom">
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:textColor="@color/white"
+                        android:gravity="center"
+                        android:textStyle="normal|bold"
+                        android:textSize="20dp"
+                        android:text="0"
+                        android:background="@drawable/black_circle_fill"/>
 
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/p3Img"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/default_profile_circle" />
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
-                        <com.airbnb.lottie.LottieAnimationView
-                            android:id="@+id/p3Star"
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            app:lottie_fileName="Favorite Star.json"/>
-
-                        <TextView
-                            android:id="@+id/p3Score"
+                        <LinearLayout
+                            android:orientation="horizontal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="18dp"
-                            android:textColor="@color/colorAccent"
-                            android:text="0"
-                            android:textStyle="normal|bold" />
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_lightbulb_outline_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p3Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:textColor="@color/primary_text"
+                                android:textSize="12dp"
+                                android:text="10" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_palette_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p3DrawScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/primary_text"
+                                android:gravity="center"
+                                android:textSize="12dp"
+                                android:text="7" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
-
-                    <View
-                        android:id="@+id/p3Penalty"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
                 <FrameLayout
                     android:id="@+id/p4Ly"
                     android:layout_width="0dp"
-                    android:layout_height="70dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1">
 
                     <TextView
                         android:layout_margin="5dp"
                         android:id="@+id/p4Name"
+                        android:textStyle="normal|bold"
+                        android:textColor="@color/primary_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12dp"
@@ -305,48 +425,116 @@
                         android:ellipsize="end"
                         android:text="Title" />
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/p4Img"
                         android:layout_marginLeft="5dp"
                         android:layout_marginBottom="5dp"
                         android:layout_marginTop="25dp"
-                        android:gravity="center_vertical">
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/default_profile_circle" />
 
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/p4Img"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/default_profile_circle" />
+                    <TextView
+                        android:id="@+id/p4Penalty"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="25dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:textColor="@color/white"
+                        android:gravity="center"
+                        android:textStyle="normal|bold"
+                        android:textSize="20dp"
+                        android:text="0"
+                        android:background="@drawable/black_circle_fill"/>
 
-                        <com.airbnb.lottie.LottieAnimationView
-                            android:id="@+id/p4Star"
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            app:lottie_fileName="Favorite Star.json"
-                            app:lottie_progress="100"/>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_marginTop="24dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
-                        <TextView
-                            android:id="@+id/p4Score"
+                        <LinearLayout
+                            android:orientation="horizontal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="18dp"
-                            android:textColor="@color/colorAccent"
-                            android:text="0"
-                            android:textStyle="normal|bold" />
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_lightbulb_outline_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p4Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:textColor="@color/primary_text"
+                                android:textSize="12dp"
+                                android:text="10" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_palette_black_48dp"/>
+
+                            <TextView
+                                android:id="@+id/p4DrawScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/primary_text"
+                                android:gravity="center"
+                                android:textSize="12dp"
+                                android:text="7" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
-
-                    <View
-                        android:id="@+id/p4Penalty"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/alphaRedIndentity"/>
 
                 </FrameLayout>
 
             </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="100dp">
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="bottom|right"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/question_icon"/>
+
+                    <TextView
+                        android:id="@+id/questionLengthText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="2dp"
+                        android:textColor="@color/disable_text"
+                        android:textSize="25dp"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
 
         </FrameLayout>
 
@@ -373,28 +561,19 @@
                 android:id="@+id/answerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:scaleX="0"
+                android:scaleY="0"
                 android:background="@color/redIndentity"/>
-
-            <ImageButton
-                android:id="@+id/answerBtn"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:scaleType="centerInside"
-                android:padding="15dp"
-                android:src="@drawable/ic_pan_tool_black_48dp"
-                android:tint="@color/primary_white_text"
-                android:background="@drawable/main_circle_button"/>
 
             <EditText
                 android:id="@+id/input"
                 android:background="@color/none"
-                android:layout_marginLeft="60dp"
+                android:layout_marginLeft="16dp"
                 android:layout_marginRight="65dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:maxLength="50"
-                android:layout_gravity="center"
+                android:layout_gravity="center_vertical"
                 android:maxLines="1"
                 android:imeOptions="actionDone"
                 android:inputType="text"
@@ -412,36 +591,42 @@
 
         </FrameLayout>
 
-        <FrameLayout
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginBottom="60dp">
+            android:layout_margin="40dp"
+            android:layout_gravity="center">
 
-            <LinearLayout
-                android:orientation="horizontal"
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/mainAnimationView"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginBottom="30dp"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/popupText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:layout_gravity="bottom|right"
-                android:gravity="center_vertical">
+                android:textSize="30dp"
+                android:textColor="@color/colorPrimary"
+                android:gravity="center"
+                android:textStyle="normal|bold"/>
 
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/question_icon"/>
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/questionLengthText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="2dp"
-                    android:textColor="@color/disable_text"
-                    android:textSize="25dp"/>
-
-            </LinearLayout>
-
-        </FrameLayout>
+        <ImageButton
+            android:id="@+id/answerBtn"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="40dp"
+            android:layout_gravity="bottom|right"
+            android:scaleType="centerInside"
+            android:padding="15dp"
+            android:src="@drawable/buzzer"
+            android:background="@drawable/main_circle_button"/>
 
         <FrameLayout
             android:layout_width="250dp"

@@ -15,14 +15,10 @@
 
 package com.hellowo.mindpainter;
 
-import android.animation.Animator;
-import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Path;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,19 +32,16 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
@@ -222,38 +215,41 @@ public class MainActivity extends Activity
     FrameLayout[] pLayouts = new FrameLayout[MAX_PLAYER_COUNT];
     TextView[] pNameViews = new TextView[MAX_PLAYER_COUNT];
     TextView[] pScoreViews = new TextView[MAX_PLAYER_COUNT];
+    TextView[] pDrawScoreViews = new TextView[MAX_PLAYER_COUNT];
     CircleImageView[] pImgViews = new CircleImageView[MAX_PLAYER_COUNT];
-    View[] pPenaltyViews = new View[MAX_PLAYER_COUNT];
-    LottieAnimationView[] pStarViews = new LottieAnimationView[MAX_PLAYER_COUNT];
+    TextView[] pPenaltyViews = new TextView[MAX_PLAYER_COUNT];
+    LottieAnimationView mainAnimationView;
 
     private void initPlayerLayout() {
         pLayouts[0] = (FrameLayout) findViewById(R.id.p1Ly);
         pNameViews[0] = (TextView) findViewById(R.id.p1Name);
         pImgViews[0] = (CircleImageView) findViewById(R.id.p1Img);
         pScoreViews[0] = (TextView) findViewById(R.id.p1Score);
-        pPenaltyViews[0] = findViewById(R.id.p1Penalty);
-        pStarViews[0] = (LottieAnimationView) findViewById(R.id.p1Star);
+        pDrawScoreViews[0] = (TextView) findViewById(R.id.p1DrawScore);
+        pPenaltyViews[0] = (TextView) findViewById(R.id.p1Penalty);
 
         pLayouts[1] = (FrameLayout) findViewById(R.id.p2Ly);
         pNameViews[1] = (TextView) findViewById(R.id.p2Name);
         pImgViews[1] = (CircleImageView) findViewById(R.id.p2Img);
         pScoreViews[1] = (TextView) findViewById(R.id.p2Score);
-        pPenaltyViews[1] = findViewById(R.id.p2Penalty);
-        pStarViews[1] = (LottieAnimationView) findViewById(R.id.p2Star);
+        pDrawScoreViews[1] = (TextView) findViewById(R.id.p2DrawScore);
+        pPenaltyViews[1] = (TextView) findViewById(R.id.p2Penalty);
 
         pLayouts[2] = (FrameLayout) findViewById(R.id.p3Ly);
         pNameViews[2] = (TextView) findViewById(R.id.p3Name);
         pImgViews[2] = (CircleImageView) findViewById(R.id.p3Img);
         pScoreViews[2] = (TextView) findViewById(R.id.p3Score);
-        pPenaltyViews[2] = findViewById(R.id.p3Penalty);
-        pStarViews[2] = (LottieAnimationView) findViewById(R.id.p3Star);
+        pDrawScoreViews[2] = (TextView) findViewById(R.id.p3DrawScore);
+        pPenaltyViews[2] = (TextView) findViewById(R.id.p3Penalty);
 
         pLayouts[3] = (FrameLayout) findViewById(R.id.p4Ly);
         pNameViews[3] = (TextView) findViewById(R.id.p4Name);
         pImgViews[3] = (CircleImageView) findViewById(R.id.p4Img);
         pScoreViews[3] = (TextView) findViewById(R.id.p4Score);
-        pPenaltyViews[3] = findViewById(R.id.p4Penalty);
-        pStarViews[3] = (LottieAnimationView) findViewById(R.id.p4Star);
+        pDrawScoreViews[3] = (TextView) findViewById(R.id.p4DrawScore);
+        pPenaltyViews[3] = (TextView) findViewById(R.id.p4Penalty);
+
+        mainAnimationView = (LottieAnimationView) findViewById(R.id.mainAnimationView);
     }
 
     RecyclerView chatListView;
@@ -332,6 +328,11 @@ public class MainActivity extends Activity
             notifyItemInserted(chatList.size() - 1);
             chatListView.scrollToPosition(chatList.size() - 1);
         }
+
+        public void clear() {
+            chatList.clear();
+            notifyDataSetChanged();
+        }
     }
 
     public class Chat {
@@ -352,8 +353,6 @@ public class MainActivity extends Activity
         answerBtn = (ImageButton) findViewById(R.id.answerBtn);
         answerView = findViewById(R.id.answerView);
         sendBtn = (Button) findViewById(R.id.sendBtn);
-
-        answerView.setTranslationX(-(inkViewWidth - ViewUtil.dpToPx(this, 50)));
 
         input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -379,11 +378,17 @@ public class MainActivity extends Activity
         answerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                changeChatMode();
+                if(chatMode == CHAT_NORMAL) {
+                    setChatMode(CHAT_ANSWER);
+                    AnimationUtil.startScaleHideAnimation(answerBtn);
+                    getWindow().setSoftInputMode(
+                            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                    ((InputMethodManager) getSystemService
+                            (Context.INPUT_METHOD_SERVICE)).showSoftInput(input, 0);
+                }
             }
         });
     }
-
 
     private void initDrawToolView() {
     }
@@ -593,7 +598,6 @@ public class MainActivity extends Activity
 
         // if we're in a room, leave it.
         leaveRoom();
-
         // stop trying to keep the screen on
         stopKeepingScreenOn();
 
@@ -760,6 +764,16 @@ public class MainActivity extends Activity
     @Override
     public void onLeftRoom(int statusCode, String roomId) {
         Log.d(TAG, "onLeftRoom, code " + statusCode);
+        currentTurnPlayerIndex = 0;
+        currentTurnPlayerId = null;
+        chatAdapter.clear();
+        round = 1;
+
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            pScoreViews[i].setText("0");
+            pDrawScoreViews[i].setText("0");
+        }
+
         switchToMainScreen();
     }
 
@@ -895,29 +909,32 @@ public class MainActivity extends Activity
     final static int GAME_STATUS_DRAWING = 1;
     final static int GAME_STATUS_FINISHING = 2;
     final static int GAME_TICK_FRAME = 35;
-    final static int PLAYER_PANELTY_TIME = 1000 * 10;
+    final static int PLAYER_PANELTY_SECONDS = 10;
     final static int CHAT_NORMAL = 0;
     final static int CHAT_ANSWER = 1;
 
     long gameDuration = 1000 * 60; // 그리기 시간
     long leftTime = -1; // 남은 시간
-    long[] playerPenaltyTime = new long[MAX_PLAYER_COUNT];
+    int[] playerAnswerPenalty = new int[MAX_PLAYER_COUNT];
     int pNum = 0; // 현재 그려지는 포인트 넘버
     int gameStatus = GAME_STATUS_READYING;
     int chatMode = CHAT_NORMAL;
     int round = 1;
+    int currentTurnPlayerIndex;
     String currentTurnPlayerId;
-    String question = "question";
     HashMap<Integer, GameMessage> savedPNumMap = new HashMap<>();
 
     QuestionDialog questionDialog;
+    EvaluateDialog evaluateDialog;
 
-    // Reset game variables in preparation for a new game.
     void resetGameVars() {
         leftTime = gameDuration;
         pNum = 0;
         savedPNumMap.clear();
         chatMode = CHAT_NORMAL;
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            playerAnswerPenalty[i] = 0;
+        }
     }
 
     private void resetView() {
@@ -926,39 +943,36 @@ public class MainActivity extends Activity
         tickProgressText.setText("");
 
         for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
-            pPenaltyViews[i].setTranslationY(ViewUtil.dpToPx(this, 70));
+            pPenaltyViews[i].setVisibility(View.GONE);
         }
+
+        input.setTextColor(getResources().getColor(R.color.primary_text));
+        input.setHintTextColor(getResources().getColor(R.color.disable_text));
+        input.setHint(R.string.input_hint);
+        answerView.setScaleX(0f);
+        answerView.setScaleY(0f);
+        answerBtn.setScaleX(1f);
+        answerBtn.setScaleY(1f);
+
+        questionLengthText.setText("");
     }
 
     void startGame(boolean multiplayer) {
         mMultiplayer = multiplayer;
 
         switchToScreen(R.id.screen_game);
-        clearPlayerPenaltyTime();
+        clearPlayerView();
+        resetView();
 
         if(multiplayer) {
 
-            currentTurnPlayerId = mParticipants.get(0).getParticipantId();
             setPlayerViews();
+            setNextTurnPlayer();
             setBottomViews();
             sendMyInformation();
+            startQuestionSelect();
 
         }
-
-        resetView();
-
-        if(chatMode == CHAT_ANSWER) {
-            changeChatMode();
-        }
-
-        startQuestionSelect();
-    }
-
-    private boolean isMyTurn() {
-        try{
-            return currentTurnPlayerId.equals(mMyId);
-        }catch (Exception ignored){}
-        return true;
     }
 
     private void startQuestionSelect() {
@@ -966,20 +980,6 @@ public class MainActivity extends Activity
         inkView.setEnabled(false);
         questionDialog = new QuestionDialog(this, round, isMyTurn());
         DialogUtil.showDialog(questionDialog, false, true, true, false);
-    }
-
-    public void selectQuestion() {
-        GameMessage msg = makeMessage(
-                200,
-                null,
-                0,
-                Question.question_level,
-                Question.question_num,
-                System.currentTimeMillis()
-        );
-        broadcastScore(true, ByteUtil.toByteArray(msg));
-        setQuestion();
-        startDrawing();
     }
 
     public void setQuestion() {
@@ -993,7 +993,11 @@ public class MainActivity extends Activity
 
     public void startDrawing() {
         gameStatus = GAME_STATUS_DRAWING;
-        showPopupText(R.string.start);
+        showPopupText(
+                getString(R.string.start),
+                getResources().getColor(R.color.colorPrimary),
+                1500
+        );
         startTickProgress();
 
         if(isMyTurn()) {
@@ -1008,40 +1012,19 @@ public class MainActivity extends Activity
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (leftTime <= 0)
+                if (leftTime <= 0){
+                    if(gameStatus == GAME_STATUS_DRAWING && isMyTurn()){
+                        GameMessage msg = MainActivity.makeMessage(
+                                205/*timelimit*/, null, 0, 0, 0, System.currentTimeMillis());
+                        broadcastScore(true, ByteUtil.toByteArray(msg));
+                        timeLimited();
+                    }
                     return;
+                }
                 gameTick();
                 h.postDelayed(this, GAME_TICK_FRAME);
             }
         }, GAME_TICK_FRAME);
-    }
-
-    private void changeChatMode() {
-        if(chatMode == CHAT_NORMAL) {
-
-            chatMode = CHAT_ANSWER;
-            answerBtn.setImageResource(R.drawable.ic_chat_black_48dp);
-            input.setHint(R.string.input_answer_hint);
-            input.setTextColor(Color.WHITE);
-            AnimationUtil.startFromLeftSlideAppearAnimation(
-                    answerView, inkViewWidth - ViewUtil.dpToPx(this, 50));
-
-        }else {
-
-            chatMode = CHAT_NORMAL;
-            answerBtn.setImageResource(R.drawable.ic_pan_tool_black_48dp);
-            input.setTextColor(getResources().getColor(R.color.primary_text));
-            input.setHint(R.string.input_hint);
-            AnimationUtil.startToLeftSlideDisAppearAnimation(
-                    answerView, inkViewWidth - ViewUtil.dpToPx(this, 50));
-
-        }
-    }
-
-    private void clearPlayerPenaltyTime() {
-        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
-            playerPenaltyTime[i] = 0;
-        }
     }
 
     void gameTick() {
@@ -1051,44 +1034,164 @@ public class MainActivity extends Activity
 
         tickProgress.setProgress(((float) leftTime / gameDuration) * 100);
         tickProgressText.setText(String.valueOf(leftTime / 1000));
+    }
 
-        if (leftTime <= 0) {
-            finishGame();
+    private void setChatMode(int chatMode) {
+        this.chatMode = chatMode;
+
+        if(chatMode == CHAT_NORMAL) {
+            input.setHint(R.string.input_hint);
+            input.setTextColor(getResources().getColor(R.color.primary_text));
+            input.setHintTextColor(getResources().getColor(R.color.disable_text));
+            AnimationUtil.startScaleHideAnimation(answerView);
+        }else {
+            input.setHint(R.string.input_answer_hint);
+            input.setTextColor(Color.WHITE);
+            input.setHintTextColor(Color.WHITE);
+            AnimationUtil.startScaleShowAnimation(answerView);
         }
     }
 
-    private void finishGame() {
+    public void answer(String answer) {
+        if(answer.equals(Question.getCurrentQuestion())) {
+            GameMessage msg = makeMessage(201, null, 0, 0, 0, System.currentTimeMillis());
+            broadcastScore(true, ByteUtil.toByteArray(msg));
+            correctAnswer(playerMap.get(mMyId));
+        }else{
+            GameMessage msg = makeMessage(202, null, 0, 0, 0, System.currentTimeMillis());
+            broadcastScore(true, ByteUtil.toByteArray(msg));
+            incorrectAnswer(playerMap.get(mMyId));
+        }
+    }
+
+    public void incorrectAnswer(Player player) {
+        if(player.id.equals(mMyId)) {
+            showPopupText(getString(R.string.incorrectAnswer),
+                    getResources().getColor(R.color.redIndentity),
+                    2000
+            );
+
+            answerBtn.setEnabled(false);
+            answerBtn.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    answerBtn.setEnabled(true);
+                    AnimationUtil.startScaleShowAnimation(answerBtn);
+                }
+            }, 1000 * PLAYER_PANELTY_SECONDS);
+        }
+
+        final int playerIndex = getPlayerIndex(player);
+        playerAnswerPenalty[playerIndex] = PLAYER_PANELTY_SECONDS;
+        pPenaltyViews[playerIndex].setVisibility(View.VISIBLE);
+        pPenaltyViews[playerIndex].setText(String.valueOf(PLAYER_PANELTY_SECONDS));
+
+        final Handler h = new Handler();
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (playerAnswerPenalty[playerIndex] <= 0){
+                    pPenaltyViews[playerIndex].setVisibility(View.GONE);
+                    return;
+                }
+                playerAnswerPenalty[playerIndex]--;
+                pPenaltyViews[playerIndex].setText(String.valueOf(playerAnswerPenalty[playerIndex]));
+                h.postDelayed(this, 1000);
+            }
+        }, 1000);
+    }
+
+    public void correctAnswer(Player player) {
         AnimationUtil.startToTopDisappearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
-    }
 
-    private void drawPoint(GameMessage msg) {
-        pNum++;
+        player.correctAnswerCount++;
+        pScoreViews[getPlayerIndex(player)].setText(String.valueOf(player.correctAnswerCount));
 
-        switch (msg.type) {
-            case 0:
-                inkView.onActionDown(
-                        inkViewWidth * msg.x,
-                        inkViewHeight * msg.y,
-                        msg.time
-                );
-                break;
-            case 1:
-                inkView.onActionMove(
-                        inkViewWidth * msg.x,
-                        inkViewHeight * msg.y,
-                        msg.time
-                );
-                break;
-            case 2:
-                inkView.onActionUp();
-                break;
-            default:
-                break;
+        Player currentTurnPlayer = playerMap.get(currentTurnPlayerId);
+        currentTurnPlayer.successDrawingCount++;
+        pDrawScoreViews[getPlayerIndex(currentTurnPlayer)]
+                .setText(String.valueOf(currentTurnPlayer.successDrawingCount));
+
+        if(player.id.equals(mMyId)) {
+            showPopupText(
+                    getString(R.string.correctAnswer),
+                    getResources().getColor(R.color.colorPrimary),
+                    2000
+            );
+            mainAnimationView.setAnimation("Favorite Star.json");
+        }else {
+            showPopupText(
+                    String.format(getString(R.string.correctAnswerPlayer), player.name),
+                    getResources().getColor(R.color.colorPrimary),
+                    2000
+            );
+            mainAnimationView.setAnimation("Tongue.json");
         }
+
+        mainAnimationView.setVisibility(View.VISIBLE);
+        AnimationUtil.startScaleShowAnimation(mainAnimationView);
+        mainAnimationView.playAnimation();
+
+        interfaceLy.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                AnimationUtil.startScaleHideAnimation(mainAnimationView);
+                mainAnimationView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mainAnimationView.setVisibility(View.GONE);
+                    }
+                }, 250);
+                startEvaluate();
+            }
+        }, 2000);
     }
 
-    private void savePoint(GameMessage msg) {
-        savedPNumMap.put(msg.pNum, msg);
+    public void startEvaluate() {
+        gameStatus = GAME_STATUS_FINISHING;
+
+        AnimationUtil.startToTopDisappearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
+        leftTime = -1;
+        evaluateDialog = new EvaluateDialog(this, isMyTurn(), mParticipants.size() - 1);
+        DialogUtil.showDialog(evaluateDialog, false, true, true, false);
+    }
+
+    private void timeLimited() {
+        AnimationUtil.startToTopDisappearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
+        showPopupText(
+                getString(R.string.time_limit),
+                getResources().getColor(R.color.redIndentity),
+                2000
+        );
+        mainAnimationView.setAnimation("Tongue.json");
+        mainAnimationView.setVisibility(View.VISIBLE);
+        AnimationUtil.startScaleShowAnimation(mainAnimationView);
+        mainAnimationView.playAnimation();
+
+        interfaceLy.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                AnimationUtil.startScaleHideAnimation(mainAnimationView);
+                mainAnimationView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mainAnimationView.setVisibility(View.GONE);
+                    }
+                }, 250);
+                startNextRound();
+            }
+        }, 2000);
+    }
+
+    public void startNextRound() {
+        round++;
+        resetGameVars();
+        resetView();
+
+        setNextTurnPlayer();
+        setBottomViews();
+        sendMyInformation();
+        startQuestionSelect();
     }
 
     final static int[] CLICKABLES = {
@@ -1102,6 +1205,13 @@ public class MainActivity extends Activity
             R.id.screen_wait
     };
     int mCurScreen = -1;
+
+    private void clearPlayerView() {
+        for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+            pScoreViews[i].setText("0");
+            pDrawScoreViews[i].setText("0");
+        }
+    }
 
     private void setPlayerViews() {
         for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
@@ -1188,7 +1298,7 @@ public class MainActivity extends Activity
      */
 
     void broadcastScore(boolean reliable, byte[] mMsgBuf) {
-        if (!mMultiplayer)
+        if (!mMultiplayer || mRoomId == null)
             return; // playing single-player mode
 
         // Send to every other participant.
@@ -1249,6 +1359,37 @@ public class MainActivity extends Activity
                 questionDialog.selectedQuestion();
             }
 
+        }else if(msg.type == 201) {
+
+            Player p = playerMap.get(rtm.getSenderParticipantId());
+            if(p != null) {
+                correctAnswer(p);
+            }
+
+        }else if(msg.type == 202) {
+
+            Player p = playerMap.get(rtm.getSenderParticipantId());
+            if(p != null) {
+                incorrectAnswer(p);
+            }
+
+        }else if(msg.type == 203) {
+
+            int evaluateNum = msg.pNum;
+            if(evaluateDialog != null) {
+                evaluateDialog.receiveEvaluate(evaluateNum);
+            }
+
+        }else if(msg.type == 204) {
+
+            if(evaluateDialog != null) {
+                evaluateDialog.finishEvaluate();
+            }
+
+        }else if(msg.type == 205) {
+
+            timeLimited();
+
         }
     }
 
@@ -1257,7 +1398,7 @@ public class MainActivity extends Activity
     }
 
     private void sendInputMessage() {
-        String text = input.getText().toString();
+        String text = input.getText().toString().trim();
         if(!TextUtils.isEmpty(text)) {
             GameMessage msg = makeMessage(
                     chatMode == CHAT_NORMAL ? 100 : 101,
@@ -1272,7 +1413,10 @@ public class MainActivity extends Activity
             input.setText("");
 
             if(chatMode == CHAT_ANSWER) {
-                changeChatMode();
+                answer(text);
+                setChatMode(CHAT_NORMAL);
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
             }
         }
     }
@@ -1311,14 +1455,70 @@ public class MainActivity extends Activity
         return message;
     }
 
-    public void showPopupText(int stringId){
-        popupText.setText(stringId);
+    private void drawPoint(GameMessage msg) {
+        pNum++;
+
+        switch (msg.type) {
+            case 0:
+                inkView.onActionDown(
+                        inkViewWidth * msg.x,
+                        inkViewHeight * msg.y,
+                        msg.time
+                );
+                break;
+            case 1:
+                inkView.onActionMove(
+                        inkViewWidth * msg.x,
+                        inkViewHeight * msg.y,
+                        msg.time
+                );
+                break;
+            case 2:
+                inkView.onActionUp();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void savePoint(GameMessage msg) {
+        savedPNumMap.put(msg.pNum, msg);
+    }
+
+    public void showPopupText(String string, int color, long delay){
+        popupText.setText(string);
+        popupText.setTextColor(color);
         AnimationUtil.startScaleShowAnimation(popupText);
         popupText.postDelayed(new Runnable() {
             @Override
             public void run() {
                AnimationUtil.startScaleHideAnimation(popupText);
             }
-        }, 1000);
+        }, delay);
+    }
+
+    private int getPlayerIndex(Player player) {
+        for (int i = 0; i < mParticipants.size(); i++) {
+            if(mParticipants.get(i).getParticipantId().equals(player.id)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void setNextTurnPlayer() {
+        if(currentTurnPlayerId == null) {
+            currentTurnPlayerIndex = 0;
+        }else {
+            currentTurnPlayerIndex = (currentTurnPlayerIndex + 1) % mParticipants.size();
+        }
+        currentTurnPlayerId = mParticipants.get(currentTurnPlayerIndex).getParticipantId();
+    }
+
+    private boolean isMyTurn() {
+        try{
+            return currentTurnPlayerId.equals(mMyId);
+        }catch (Exception ignored){}
+        return true;
     }
 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.hellowo.mindpainter.utils.AnimationUtil;
+import com.hellowo.mindpainter.utils.ByteUtil;
 
 public class QuestionDialog extends Dialog {
     MainActivity activity;
@@ -58,7 +59,17 @@ public class QuestionDialog extends Dialog {
             startButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.selectQuestion();
+                    GameMessage msg = MainActivity.makeMessage(
+                            200,
+                            null,
+                            0,
+                            Question.question_level,
+                            Question.question_num,
+                            System.currentTimeMillis()
+                    );
+                    activity.broadcastScore(true, ByteUtil.toByteArray(msg));
+                    activity.setQuestion();
+                    selectedQuestion();
                     dismiss();
                 }
             });
@@ -72,6 +83,18 @@ public class QuestionDialog extends Dialog {
             animationView.loop(true);
             animationView.playAnimation();
         }
+    }
+
+    public void selectedQuestion() {
+        subText.setText(R.string.start_soon);
+        AnimationUtil.startScaleShowAnimation(subText);
+        subText.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                activity.startDrawing();
+                dismiss();
+            }
+        }, 1000);
     }
 
     private void setLayout() {
@@ -95,17 +118,5 @@ public class QuestionDialog extends Dialog {
                 AnimationUtil.startScaleShowAnimation(rootLy);
             }
         }, 250);
-    }
-
-    public void selectedQuestion() {
-        subText.setText(R.string.start_soon);
-        AnimationUtil.startScaleShowAnimation(subText);
-        subText.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                activity.startDrawing();
-                dismiss();
-            }
-        }, 1000);
     }
 }
