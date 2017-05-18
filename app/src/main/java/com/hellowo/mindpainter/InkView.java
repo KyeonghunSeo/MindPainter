@@ -21,12 +21,12 @@ public class InkView extends View {
      * The default maximum stroke width (dp).
      * Will be used as the standard stroke width if FLAG_RESPONSIVE_WIDTH is removed
      */
-    public static final float DEFAULT_MAX_STROKE_WIDTH = 5f;
+    public static final float DEFAULT_MAX_STROKE_WIDTH = 2f;
 
     /**
      * The default minimum stroke width (dp)
      */
-    public static final float DEFAULT_MIN_STROKE_WIDTH = 1.5f;
+    public static final float DEFAULT_MIN_STROKE_WIDTH = 2f;
 
     /**
      * The default smoothing ratio for calculating the control points for the bezier curves.
@@ -37,6 +37,8 @@ public class InkView extends View {
     public static final byte TOOL_PENCIL = 0;
     public static final byte TOOL_SIGN_PEN = 1;
     public static final byte TOOL_FOUNTAIN_PEN = 2;
+    public static final byte TOOL_BRUSH = 3;
+    public static final byte TOOL_HIGHLIGHT = 4;
 
     // constants
     static final float THRESHOLD_VELOCITY = 7f;         // in/s
@@ -199,8 +201,19 @@ public class InkView extends View {
                 break;
             case TOOL_FOUNTAIN_PEN:
                 break;
+            case TOOL_BRUSH:
+                break;
+            case TOOL_HIGHLIGHT:
+                break;
             default:
                 break;
+        }
+    }
+
+    public void setToolWithLister(int tool) {
+        setTool(tool);
+        if(listener != null) {
+            listener.onSetTool(pointNum, tool);
         }
     }
 
@@ -240,14 +253,8 @@ public class InkView extends View {
         listener = null;
     }
 
-    /**
-     * Sets the stroke color
-     *
-     * @param color The color value
-     */
     public void setColorWithListener(int color) {
-        this.color = color;
-        paint.setColor(color);
+        setColor(color);
         if(listener != null){
             listener.onSetColor(pointNum, color);
             pointNum++;
@@ -257,6 +264,37 @@ public class InkView extends View {
     public void setColor(int color) {
         this.color = color;
         paint.setColor(color);
+    }
+
+    public void setStrokeWidthWithListener(float v) {
+        setStrokeWidthWith(v);
+    }
+
+    public void setStrokeWidthWith(float v) {
+        switch (tool) {
+            case TOOL_PENCIL:
+                setMinStrokeWidth(v);
+                setMaxStrokeWidth(v);
+                break;
+            case TOOL_SIGN_PEN:
+                setMinStrokeWidth(v);
+                setMaxStrokeWidth(v + 3.5f);
+                break;
+            case TOOL_FOUNTAIN_PEN:
+                setMinStrokeWidth(v);
+                setMaxStrokeWidth(v - 3.5f);
+                break;
+            case TOOL_BRUSH:
+                setMinStrokeWidth(v);
+                setMaxStrokeWidth(v + 7f);
+                break;
+            case TOOL_HIGHLIGHT:
+                setMinStrokeWidth(v);
+                setMaxStrokeWidth(v);
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -381,6 +419,7 @@ public class InkView extends View {
         void onInkClear();
         void onDraw(int action, int pNum, float x, float y, long time);
         void onSetColor(int pNum, int color);
+        void onSetTool(int pNum, int tool);
     }
 
 

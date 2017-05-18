@@ -195,7 +195,6 @@ public class MainActivity extends Activity
                 });
 
         inkView.setBackgroundColor(Color.WHITE);
-        inkView.setTool(TOOL_SIGN_PEN);
         inkView.addListener(new InkView.InkListener() {
             @Override
             public void onInkClear() {}
@@ -218,6 +217,12 @@ public class MainActivity extends Activity
             @Override
             public void onSetColor(int pNum, int color) {
                 GameMessage msg = makeMessage(3, String.valueOf(color), pNum, 0, 0, System.currentTimeMillis());
+                broadcastScore(true, ByteUtil.toByteArray(msg));
+            }
+
+            @Override
+            public void onSetTool(int pNum, int tool) {
+                GameMessage msg = makeMessage(4, String.valueOf(tool), pNum, 0, 0, System.currentTimeMillis());
                 broadcastScore(true, ByteUtil.toByteArray(msg));
             }
         });
@@ -657,7 +662,7 @@ public class MainActivity extends Activity
     // Leave the room.
     void leaveRoom() {
         Log.d(TAG, "Leaving room.");
-        leftTime = 0;
+        leftTime = -1;
         stopKeepingScreenOn();
         if (mRoomId != null) {
             Games.RealTimeMultiplayer.leave(mGoogleApiClient, this, mRoomId);
@@ -905,15 +910,16 @@ public class MainActivity extends Activity
         }
     }
 
-    /*
+    /**********************************************************************
      * 게임 로직 섹션 Methods that implement the game's rules.
-     */
+     **********************************************************************/
 
     // Current state of the game:
     final static int MAX_PLAYER_COUNT = 4;
     final static int GAME_STATUS_READYING = 0;
     final static int GAME_STATUS_DRAWING = 1;
-    final static int GAME_STATUS_FINISHING = 2;
+    final static int GAME_STATUS_CORRECT_ANSWER = 2;
+    final static int GAME_STATUS_TIME_LIMIT = 3;
     final static int GAME_TICK_FRAME = 35;
     final static int PLAYER_PANELTY_SECONDS = 10;
     final static int CHAT_NORMAL = 0;
@@ -934,7 +940,6 @@ public class MainActivity extends Activity
     EvaluateDialog evaluateDialog;
 
     void resetGameVars() {
-        leftTime = gameDuration;
         pNum = 0;
         savedPNumMap.clear();
         chatMode = CHAT_NORMAL;
@@ -989,6 +994,9 @@ public class MainActivity extends Activity
     private void startQuestionSelect() {
         gameStatus = GAME_STATUS_READYING;
         inkView.stopDrawing();
+
+        hideKeyPad();
+
         questionDialog = new QuestionDialog(this, round, isMyTurn());
         DialogUtil.showDialog(questionDialog, false, true, true, false);
     }
@@ -1012,25 +1020,27 @@ public class MainActivity extends Activity
         startTickProgress();
 
         if(isMyTurn()) {
-            hideKeyPad();
             inkView.startDrawing();
         }
     }
 
     private void startTickProgress() {
+        leftTime = gameDuration;
         AnimationUtil.startFromTopSlideAppearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
 
         final Handler h = new Handler();
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (leftTime <= 0){
-                    if(gameStatus == GAME_STATUS_DRAWING && isMyTurn()){
+                if (gameStatus == GAME_STATUS_TIME_LIMIT || gameStatus == GAME_STATUS_CORRECT_ANSWER){
+
+                    if(gameStatus == GAME_STATUS_TIME_LIMIT && isMyTurn()){
                         GameMessage msg = MainActivity.makeMessage(
                                 205/*timelimit*/, null, 0, 0, 0, System.currentTimeMillis());
                         broadcastScore(true, ByteUtil.toByteArray(msg));
                         timeLimited();
                     }
+
                     return;
                 }
                 gameTick();
@@ -1042,6 +1052,8 @@ public class MainActivity extends Activity
     void gameTick() {
         if (leftTime > 0) {
             leftTime -= GAME_TICK_FRAME;
+        } else if(gameStatus == GAME_STATUS_DRAWING) {
+            gameStatus = GAME_STATUS_TIME_LIMIT;
         }
 
         tickProgress.setProgress(((float) leftTime / gameDuration) * 100);
@@ -1061,18 +1073,6 @@ public class MainActivity extends Activity
             input.setTextColor(Color.WHITE);
             input.setHintTextColor(Color.WHITE);
             AnimationUtil.startScaleShowAnimation(answerView);
-        }
-    }
-
-    public void answer(String answer) {
-        if(answer.equals(Question.getCurrentQuestion())) {
-            GameMessage msg = makeMessage(201, null, 0, 0, 0, System.currentTimeMillis());
-            broadcastScore(true, ByteUtil.toByteArray(msg));
-            correctAnswer(playerMap.get(mMyId));
-        }else{
-            GameMessage msg = makeMessage(202, null, 0, 0, 0, System.currentTimeMillis());
-            broadcastScore(true, ByteUtil.toByteArray(msg));
-            incorrectAnswer(playerMap.get(mMyId));
         }
     }
 
@@ -1114,6 +1114,8 @@ public class MainActivity extends Activity
     }
 
     public void correctAnswer(Player player) {
+        gameStatus = GAME_STATUS_CORRECT_ANSWER;
+
         AnimationUtil.startToTopDisappearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
 
         player.correctAnswerCount++;
@@ -1165,10 +1167,7 @@ public class MainActivity extends Activity
     }
 
     public void startEvaluate() {
-        gameStatus = GAME_STATUS_FINISHING;
-
         AnimationUtil.startToTopDisappearAnimation(interfaceLy, ViewUtil.dpToPx(this, 25));
-        leftTime = -1;
         evaluateDialog = new EvaluateDialog(this, isMyTurn(), mParticipants.size() - 1);
         DialogUtil.showDialog(evaluateDialog, false, true, true, false);
     }
@@ -1403,26 +1402,24 @@ public class MainActivity extends Activity
             String senderId = rtm.getSenderParticipantId();
             showChatMessage(senderId, msg);
 
+            if(msg.type == 101) {
+
+                Player p = playerMap.get(senderId);
+
+                if(msg.pNum == 1) {
+                    correctAnswer(p);
+                }else {
+                    incorrectAnswer(p);
+                }
+
+            }
+
         }else if(msg.type == 200) {
 
             Question.selectQuestion((int)msg.x, (int)msg.y);
             setQuestion();
             if(questionDialog != null) {
-                questionDialog.selectedQuestion();
-            }
-
-        }else if(msg.type == 201) {
-
-            Player p = playerMap.get(rtm.getSenderParticipantId());
-            if(p != null) {
-                correctAnswer(p);
-            }
-
-        }else if(msg.type == 202) {
-
-            Player p = playerMap.get(rtm.getSenderParticipantId());
-            if(p != null) {
-                incorrectAnswer(p);
+                questionDialog.selectedQuestion(msg.time);
             }
 
         }else if(msg.type == 203) {
@@ -1440,7 +1437,9 @@ public class MainActivity extends Activity
 
         }else if(msg.type == 205) {
 
-            timeLimited();
+            if(gameStatus != GAME_STATUS_CORRECT_ANSWER) {
+                timeLimited();
+            }
 
         }
     }
@@ -1451,28 +1450,41 @@ public class MainActivity extends Activity
 
     private void sendInputMessage() {
         String text = input.getText().toString().trim();
-        if(!TextUtils.isEmpty(text)) {
-            GameMessage msg = makeMessage(
-                    chatMode == CHAT_NORMAL ? 100 : 101,
-                    text,
-                    0,
-                    0,
-                    0,
-                    System.currentTimeMillis()
-            );
-            broadcastScore(false, ByteUtil.toByteArray(msg));
-            showChatMessage(mMyId, msg);
-            input.setText("");
 
-            if(chatMode == CHAT_ANSWER) {
-                answer(text);
+        if(!TextUtils.isEmpty(text) && gameStatus == GAME_STATUS_DRAWING) {
+
+            GameMessage msg;
+
+            if(chatMode == CHAT_NORMAL) {
+
+                msg = makeMessage(100, text, 0, 0, 0, System.currentTimeMillis());
+                broadcastScore(false, ByteUtil.toByteArray(msg));
+
+            }else{
+
+                boolean isCorrected = text.equals(Question.getCurrentQuestion());
+
+                msg = makeMessage(101, text, isCorrected ? 1 : 0, 0, 0, System.currentTimeMillis());
+                broadcastScore(true, ByteUtil.toByteArray(msg));
+
                 setChatMode(CHAT_NORMAL);
                 hideKeyPad();
+
+                if(isCorrected) {
+                    correctAnswer(playerMap.get(mMyId));
+                }else {
+                    incorrectAnswer(playerMap.get(mMyId));
+                }
+
             }
+
+            showChatMessage(mMyId, msg);
+            input.setText("");
         }
     }
 
     private void hideKeyPad() {
+        input.clearFocus();
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
     }
@@ -1534,6 +1546,9 @@ public class MainActivity extends Activity
                 break;
             case 3:
                 inkView.setColor(Integer.parseInt(msg.text));
+                break;
+            case 4:
+                inkView.setTool(Integer.parseInt(msg.text));
                 break;
             default:
                 break;

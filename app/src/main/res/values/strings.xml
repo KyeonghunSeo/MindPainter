@@ -56,4 +56,5 @@
     <string name="bad">엉터리</string>
     <string name="finish_evaluate">평가완료\n잠시 후 다음 라운드가 시작됩니다</string>
     <string name="time_limit">시간초과</string>
+    <string name="clear_all">모두지우기</string>
 </resources>

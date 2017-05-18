@@ -59,18 +59,22 @@ public class QuestionDialog extends Dialog {
             startButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    long startTime = System.currentTimeMillis() + 3000;
                     GameMessage msg = MainActivity.makeMessage(
-                            200,
-                            null,
-                            0,
+                            200, null, 0,
                             Question.question_level,
                             Question.question_num,
-                            System.currentTimeMillis()
+                            startTime
                     );
                     activity.broadcastScore(true, ByteUtil.toByteArray(msg));
                     activity.setQuestion();
-                    selectedQuestion();
-                    dismiss();
+                    newQuestionBtn.setVisibility(View.GONE);
+                    startButton.setVisibility(View.GONE);
+                    animationView.setVisibility(View.VISIBLE);
+                    animationView.setAnimation("Loading 1.json");
+                    animationView.loop(true);
+                    animationView.playAnimation();
+                    selectedQuestion(startTime);
                 }
             });
         }else {
@@ -85,7 +89,7 @@ public class QuestionDialog extends Dialog {
         }
     }
 
-    public void selectedQuestion() {
+    public void selectedQuestion(long startTime) {
         subText.setText(R.string.start_soon);
         AnimationUtil.startScaleShowAnimation(subText);
         subText.postDelayed(new Runnable() {
@@ -94,7 +98,7 @@ public class QuestionDialog extends Dialog {
                 activity.startDrawing();
                 dismiss();
             }
-        }, 1000);
+        }, startTime - System.currentTimeMillis());
     }
 
     private void setLayout() {
